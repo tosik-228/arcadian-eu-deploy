@@ -5,6 +5,13 @@ alerts:
   - rule: DOMAIN_FAILED
 features:
   - buildpack-stack=ubuntu-22
+domains:
+  - domain: arcadian-eu.com
+    type: PRIMARY
+    minimum_tls_version: "1.2"
+  - domain: www.arcadian-eu.com
+    type: ALIAS
+    minimum_tls_version: "1.2"
 ingress:
   rules:
     - component:
