@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Privacy | ARCADIAN</title>
+  <meta name="description" content="ARCADIAN privacy and cookie notice for EU users.">
+  <meta name="theme-color" content="#0b1020">
+  <!-- Materialize the CSRF token here in <head>, before the body streams past the servlet
+       response buffer. Otherwise th:action on the contact form (far down the page) would try to
+       create the session after the response is already committed and abort the render. -->
+
+  <link href="/assets/img/icon.svg?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="icon" type="image/svg+xml">
+  <link href="/favicon.ico?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="icon" sizes="32x32">
+  <link href="/assets/img/favicon.png?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="alternate icon">
+  <link href="/assets/img/apple-touch-icon.png?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="apple-touch-icon">
+
+  <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
+
+  <link href="/assets/css/arcadian.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
+  <link href="/assets/css/legal-footer.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
+</head>
+
+<body class="index-page legal-page">
+  <!-- shared inline SVG marks: Arcadian A-mark + Werfvolt bolt (product lockups only) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="a-mark" viewBox="0 0 48 48">
+        <path d="M24 8 10 40h6.4l7.6-19.6L31.6 40H38L24 8Z" fill="#fff"/>
+        <path d="M19 29h14.5" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="38.5" cy="29" r="3.4" fill="#ffd9ae"/>
+      </symbol>
+      <symbol id="wv-bolt" viewBox="0 0 48 48">
+        <path d="M27 5 13 27h8l-1 16 15-23h-9l1-15Z" fill="#fff"/>
+        <path d="M37 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3Z" fill="#d6ff3b"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <nav class="nav on-dark" id="site-nav">
+  <div class="nav-in">
+    <a class="brand-lock" href="/">
+      <span class="logo-tile"><svg><use href="#a-mark"/></svg></span>
+      <span class="word">ARCADIAN<small>Engineering Group</small></span>
+    </a>
+
+    <div class="nav-links" id="nav-links">
+      <a href="/#products">Products</a><a href="/#services">Services</a><a href="/#about">Company</a><a href="/#team">Team</a><a href="/#contact">Contact</a>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="lang">
+      <a href="/"
+         aria-label="English" class="on">EN</a><a href="/pl/"
+         aria-label="Polski">PL</a><a href="/nl/"
+         aria-label="Nederlands">NL</a>
+    </div>
+
+    <a class="btn btn-copper btn-sm" href="/#contact">Start a project</a>
+
+    <button class="nav-burger" type="button" aria-label="Menu" aria-controls="nav-links">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+  <main class="main">
+
+
+
+
+
+  <header class="blueprint legal-head">
+    <div class="wrap">
+      <span class="eyebrow on-dark">ARCADIAN legal</span>
+      <h1>Privacy</h1>
+      <p>How ARCADIAN handles personal data, cookies and EU data protection rights.</p>
+      <span class="updated">Last updated: <time datetime="2026-07-02">2 July 2026</time></span>
+      <div class="current-line" style="max-width:220px;margin-top:22px"></div>
+    </div>
+  </header>
+
+  <!-- ================= TERMS ================= -->
+
+
+  <!-- ================= PRIVACY ================= -->
+  <article class="legal-body">
+    <section>
+      <h2>1. Controller</h2>
+      <p>
+        The controller of personal data is
+        <span>ARCADIAN SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ</span>,
+        KRS <span>0001242523</span>, VAT
+        <span>PL1133202795</span>, REGON
+        <span>54481633500000</span>, registered at
+        <span>ul. Ostrobramska 101/4, 04-041 Warsaw, Poland</span>.
+        You can contact us at <a href="mailto:info@arcadian-eu.com">info@arcadian-eu.com</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Data we process</h2>
+      <p>Depending on how you use the website, ARCADIAN may process:</p>
+      <ul>
+        <li>contact form data such as name, email, phone, message, inquiry type;</li>
+        <li>technical logs needed for security, troubleshooting, fraud prevention and service reliability, including IP-derived city, country and time zone where available;</li>
+        <li>cookie preferences, including the necessary language cookie named <code>AVENTRO_LANG</code> and optional time zone preference <code>arcadianTimeZone</code>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Purposes and legal bases</h2>
+      <p>
+        We process personal data to respond to requests, prepare and perform contracts,
+        secure the service, meet legal obligations and improve the website.
+        The legal bases may include GDPR Article 6(1)(a) consent, Article 6(1)(b) contract or pre-contract steps,
+        Article 6(1)(c) legal obligation and Article 6(1)(f) legitimate interests.
+      </p>
+    </section>
+
+    <section>
+      <h2>4. Cookies</h2>
+      <p>
+        Necessary cookies are used for language preference, security and session operation. Optional preference,
+        analytics and marketing cookies are disabled by default and should only run after you consent. The preference
+        cookie stores your browser time zone so timestamps can be shown in your local time. Your cookie choices are
+        stored in your browser under <code>arcadianCookieConsent.v1</code>. You can update them at any time by
+        selecting <strong>Manage cookies</strong> in the footer.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Recipients and processors</h2>
+      <p>
+        Data may be handled by hosting providers, email providers, database and backup services, IP geolocation
+        lookup providers where enabled, IT support, professional advisers and public authorities when required by
+        law. Processors must handle data under appropriate contractual safeguards.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. International transfers</h2>
+      <p>
+        If personal data is transferred outside the European Economic Area, ARCADIAN will use an appropriate legal
+        transfer mechanism where required, such as an EU adequacy decision, Standard Contractual Clauses, or another
+        safeguard recognized under EU data protection law.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Retention</h2>
+      <p>
+        We keep personal data only for as long as needed for the purpose collected, including project delivery,
+        legal obligations, accounting, security logs and dispute handling. When data is no
+        longer needed, it is deleted, anonymized or archived where law requires retention.
+      </p>
+    </section>
+
+    <section id="rights">
+      <h2>8. Your EU data protection rights</h2>
+      <p>
+        Subject to GDPR conditions, you may request access, rectification, erasure, restriction, portability and
+        objection to processing. Where processing is based on consent, you may withdraw consent at any time without
+        affecting earlier lawful processing.
+      </p>
+      <p>
+        You may also lodge a complaint with the Polish supervisory authority, the President of the Personal Data
+        Protection Office (UODO), or another competent EU supervisory authority.
+      </p>
+    </section>
+
+    <section>
+      <h2>9. Security</h2>
+      <p>
+        ARCADIAN applies access controls, upload validation, transport security and operational
+        safeguards appropriate to the service. No internet service can be guaranteed completely secure, so users
+        should report suspected misuse promptly.
+      </p>
+    </section>
+
+    <section>
+      <h2>10. Updates</h2>
+      <p>
+        We may update this notice when the website, legal requirements or providers change. The update date at
+        the top of the page shows the current version.
+      </p>
+    </section>
+  </article>
+
+
+
+  </main>
+
+  <footer class="site-footer on-dark">
+  <div class="ft">
+    <div class="ft-top">
+      <div class="ft-brand">
+        <span class="brand-lock">
+          <span class="logo-tile"><svg><use href="#a-mark"/></svg></span>
+          <span class="word" style="color:#fff">ARCADIAN<small>Engineering Group</small></span>
+        </span>
+        <p>Electrical engineering, installation and job-site software. Warsaw · Brussels.</p>
+      </div>
+
+      <div class="ft-col">
+        <small>Company</small>
+        <a href="/#about">About</a><a href="/#team">Team</a><a href="/#contact">Contact</a>
+      </div>
+      <div class="ft-col">
+        <small>Products</small>
+        <a href="https://werfvolt.be" target="_blank" rel="noopener">Werfvolt</a>
+      </div>
+      <div class="ft-col">
+        <small>Legal</small>
+        <a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/privacy/#rights">EU data rights</a>
+        <button type="button" class="ft-cookie-btn" data-cookie-action="open">Manage cookies</button>
+      </div>
+      <div class="ft-col">
+        <small>Registry</small>
+        <span class="mono-fact">KRS 0001242523</span>
+        <span class="mono-fact">VAT PL1133202795</span>
+        <span class="mono-fact">REGON 544816335</span>
+      </div>
+    </div>
+
+    <div class="ft-bottom">
+      <span>© 2026 ARCADIAN Sp. z o.o. — ul. Ostrobramska 101/4, Warsaw</span>
+      <span class="sep"></span>
+      <span class="wv-note">
+        <span class="wv-tile"><svg><use href="#wv-bolt"/></svg></span>
+        Werfvolt is an Arcadian product
+      </span>
+    </div>
+  </div>
+
+  <!-- ===================== COOKIE CONSENT ===================== -->
+  <section class="cookie-banner" data-cookie-banner hidden aria-label="Cookie notice">
+    <div class="cookie-banner-card">
+      <div>
+        <h2>Cookies and privacy</h2>
+        <p>
+          ARCADIAN uses necessary cookies for language, security and site operation. Optional preference, analytics or marketing
+          cookies stay off unless you choose to allow them.
+        </p>
+      </div>
+      <div class="cookie-banner-actions" aria-label="Cookie choices">
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="reject">Reject optional</button>
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="open">Manage cookies</button>
+        <button type="button" class="cookie-button cookie-button-primary" data-cookie-action="accept">Accept all</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="cookie-dialog" data-cookie-dialog hidden aria-hidden="true">
+    <div class="cookie-dialog-backdrop" data-cookie-action="close"></div>
+    <section class="cookie-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="cookie-dialog-title">
+      <div class="cookie-dialog-header">
+        <div>
+          <p class="cookie-dialog-eyebrow">EU cookie choices</p>
+          <h2 id="cookie-dialog-title">Manage cookies</h2>
+        </div>
+        <button type="button" class="cookie-dialog-close" data-cookie-action="close" aria-label="Close cookie settings">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <p class="cookie-dialog-intro">
+        Necessary cookies are always on because the site needs them for language preference and request
+        protection. Optional categories are only enabled after consent.
+      </p>
+      <div class="cookie-choice-list">
+        <label class="cookie-choice">
+          <span>
+            <strong>Necessary</strong>
+            <small>Required for the website, security and language preference.</small>
+          </span>
+          <input type="checkbox" checked disabled>
+        </label>
+        <label class="cookie-choice">
+          <span>
+            <strong>Preferences</strong>
+            <small>Stores your browser time zone so dates and messages use your local time.</small>
+          </span>
+          <input id="cookie-preferences" type="checkbox">
+        </label>
+        <label class="cookie-choice">
+          <span>
+            <strong>Analytics</strong>
+            <small>Helps understand aggregate website usage. No analytics tool is enabled by default.</small>
+          </span>
+          <input id="cookie-analytics" type="checkbox">
+        </label>
+        <label class="cookie-choice">
+          <span>
+            <strong>Marketing</strong>
+            <small>Reserved for optional campaign or social media integrations. Off by default.</small>
+          </span>
+          <input id="cookie-marketing" type="checkbox">
+        </label>
+      </div>
+      <div class="cookie-dialog-actions">
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="reject">Reject optional</button>
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="save">Save preferences</button>
+        <button type="button" class="cookie-button cookie-button-primary" data-cookie-action="accept">Accept all</button>
+      </div>
+    </section>
+  </div>
+</footer>
+
+  <a href="#" id="scroll-top" class="scroll-top" aria-label="Scroll to top">
+    <i class="bi bi-arrow-up-short"></i>
+  </a>
+
+  <script src="/assets/js/arcadian.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+  <script src="/assets/js/contact-form.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+
+
+  <script src="/assets/js/cookie-preferences.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+</body>
+
+</html>

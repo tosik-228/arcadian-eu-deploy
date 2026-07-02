@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>ARCADIAN</title>
+  <meta name="description" content="Electrical engineering, installation and job-site software. Werfvolt is an Arcadian product.">
+  <meta name="theme-color" content="#0b1020">
+  <!-- Materialize the CSRF token here in <head>, before the body streams past the servlet
+       response buffer. Otherwise th:action on the contact form (far down the page) would try to
+       create the session after the response is already committed and abort the render. -->
+
+  <link href="/assets/img/icon.svg?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="icon" type="image/svg+xml">
+  <link href="/favicon.ico?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="icon" sizes="32x32">
+  <link href="/assets/img/favicon.png?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="alternate icon">
+  <link href="/assets/img/apple-touch-icon.png?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="apple-touch-icon">
+
+  <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
+
+  <link href="/assets/css/arcadian.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
+  <link href="/assets/css/legal-footer.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
+</head>
+
+<body class="index-page">
+  <!-- shared inline SVG marks: Arcadian A-mark + Werfvolt bolt (product lockups only) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="a-mark" viewBox="0 0 48 48">
+        <path d="M24 8 10 40h6.4l7.6-19.6L31.6 40H38L24 8Z" fill="#fff"/>
+        <path d="M19 29h14.5" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="38.5" cy="29" r="3.4" fill="#ffd9ae"/>
+      </symbol>
+      <symbol id="wv-bolt" viewBox="0 0 48 48">
+        <path d="M27 5 13 27h8l-1 16 15-23h-9l1-15Z" fill="#fff"/>
+        <path d="M37 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2 1.2-3Z" fill="#d6ff3b"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <nav class="nav on-dark" id="site-nav">
+  <div class="nav-in">
+    <a class="brand-lock" href="/">
+      <span class="logo-tile"><svg><use href="#a-mark"/></svg></span>
+      <span class="word">ARCADIAN<small>Engineering Group</small></span>
+    </a>
+
+    <div class="nav-links" id="nav-links">
+      <a href="/#products">Products</a><a href="/#services">Services</a><a href="/#about">Company</a><a href="/#team">Team</a><a href="/#contact">Contact</a>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="lang">
+      <a href="/"
+         aria-label="English" class="on">EN</a><a href="/pl/"
+         aria-label="Polski">PL</a><a href="/nl/"
+         aria-label="Nederlands">NL</a>
+    </div>
+
+    <a class="btn btn-copper btn-sm" href="/#contact">Start a project</a>
+
+    <button class="nav-burger" type="button" aria-label="Menu" aria-controls="nav-links">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+  <main class="main">
+
+
+
+  <!-- ============ HERO ============ -->
+  <header class="blueprint">
+    <div class="hero" id="top">
+      <div class="hero-in">
+        <div>
+          <span class="eyebrow on-dark">Warsaw · Brussels · EU-wide delivery</span>
+          <h1>Electrical engineering, delivered
+            <span class="copper">end-to-end</span>.</h1>
+          <p class="lead">ARCADIAN designs, installs and documents electrical systems — and ships the software that already runs real job sites.</p>
+          <div class="hero-actions">
+            <a class="btn btn-copper" href="/#contact">Discuss a project</a>
+            <a class="btn btn-ghost on-dark" href="/#products">See our software&nbsp;→</a>
+          </div>
+          <div class="hero-stats">
+            <div class="st">
+              <b>Benelux</b>
+              <small>Primary Delivery</small>
+            </div>
+            <div class="st">
+              <b>Poland</b>
+              <small>Design Base</small>
+            </div>
+            <div class="st">
+              <b>EU</b>
+              <small>Working Standard</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- layered visual: the shipped product (Werfvolt) behind, the engineering blueprint in front.
+             Both layers are presentational; product-UI strings stay Dutch on every locale — it is a
+             faithful screenshot of the product, not site copy. -->
+        <div class="hero-visual" aria-hidden="true">
+          <!-- front layer: the engineering blueprint -->
+          <div class="schem">
+            <div class="current-line"></div>
+            <div class="bar"><i></i><i></i><i></i><span>DALI-CTRL / E-401</span></div>
+            <svg viewBox="0 0 460 240" fill="none">
+              <g stroke="#2a3350" stroke-width="1.4">
+                <path d="M30 50h120M150 50v60M150 110h90M240 110v-35M240 75h130"/>
+                <path d="M30 165h90M120 165v-35M120 130h120M240 130v55M240 185h150"/>
+                <circle cx="150" cy="50" r="4"/><circle cx="240" cy="110" r="4"/>
+                <circle cx="120" cy="165" r="4"/>
+              </g>
+              <g stroke="#c96f2e" stroke-width="2">
+                <path d="M30 85h100l18 25h80"/>
+                <circle cx="130" cy="85" r="4.5" fill="#c96f2e"/>
+                <circle cx="228" cy="110" r="4.5" fill="#ffd9ae" stroke="#ffd9ae"/>
+              </g>
+              <g font-family="JetBrains Mono,monospace" font-size="9.5" fill="#67708a">
+                <text x="30" y="38">L1 · 3×2.5mm²</text>
+                <text x="250" y="65">KNX BUS</text>
+                <text x="30" y="155">DALI-2 · DT8</text>
+              </g>
+              <rect x="330" y="90" width="100" height="60" rx="8" stroke="#3a4460" stroke-width="1.4"/>
+              <g font-family="JetBrains Mono,monospace" font-size="9.5" fill="#8b93a8">
+                <text x="344" y="115">RELAY 16A</text>
+                <text x="344" y="133">ADDR 0x2F</text>
+              </g>
+            </svg>
+            <div class="foot">
+              <span class="chip c">AutoCAD Electrical</span>
+              <span class="chip">KNX / DALI</span>
+              <span class="chip">Trimble Connect</span>
+            </div>
+          </div>
+
+          <!-- back layer: Werfvolt, the shipped product. The badge sits outside the window because
+               the window clips to its rounded corners (overflow:hidden); same anchor, same spot. -->
+          <span class="live-badge">Live product · werfvolt.be</span>
+          <div class="app-win">
+            <div class="current-line volt"></div>
+            <div class="aw-bar">
+              <i style="background:#f0a45f"></i><i></i><i></i>
+              <span class="url">werfvolt.be/portal</span>
+              <span class="wv-mini"><svg><use href="#wv-bolt"/></svg></span>
+            </div>
+            <div class="aw-body">
+              <div class="aw-side">
+                <i class="on"></i><i></i><i></i><i></i>
+              </div>
+              <div class="aw-main">
+                <div class="aw-head">
+                  <h4>Urenmatrix — juni 2026</h4>
+                  <span class="pill ok">Goedgekeurd</span>
+                </div>
+                <table class="aw-tbl">
+                  <tr><th>Elektricien</th><th>Ma</th><th>Di</th><th>Wo</th><th>Do</th><th>Vr</th><th style="text-align:right">Totaal</th></tr>
+                  <tr>
+                    <td><span class="aw-who"><i style="background:linear-gradient(150deg,#3b6fe0,#22409c)">SK</i><b>S. Kozinau</b></span></td>
+                    <td><span class="cell">8</span></td><td><span class="cell">8</span></td>
+                    <td><span class="cell volt">10</span></td><td><span class="cell">8</span></td>
+                    <td><span class="cell">6</span></td><td class="aw-total">40,0 u</td>
+                  </tr>
+                  <tr>
+                    <td><span class="aw-who"><i style="background:linear-gradient(150deg,#19b58a,#0b7a5c)">VL</i><b>V. Lien</b></span></td>
+                    <td><span class="cell">8</span></td><td><span class="cell">8</span></td>
+                    <td><span class="cell">8</span></td><td><span class="cell z">—</span></td>
+                    <td><span class="cell">8</span></td><td class="aw-total">32,0 u</td>
+                  </tr>
+                  <tr>
+                    <td><span class="aw-who"><i style="background:linear-gradient(150deg,#9a6fe0,#5f3fa8)">MP</i><b>M. Plekhava</b></span></td>
+                    <td><span class="cell">8</span></td><td><span class="cell">8</span></td>
+                    <td><span class="cell">8</span></td><td><span class="cell">8</span></td>
+                    <td><span class="cell">4</span></td><td class="aw-total">36,0 u</td>
+                  </tr>
+                </table>
+                <div class="aw-foot">
+                  <span class="aw-chip">Factuur → Peppol ✓</span>
+                  <span class="aw-chip ok">A1 / LIMOSA in orde</span>
+                  <span class="aw-kpi">594 u · 12 orgs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+  </header>
+
+  <!-- ============ PRODUCTS ============ -->
+  <section class="lt blueprint products" id="products">
+    <div class="wrap">
+      <div class="sect-head">
+        <span class="eyebrow on-dark">The Arcadian platform</span>
+        <h2 style="color:#fff">Software, built on our own job sites</h2>
+        <p style="color:#a9b0c2">We run construction workforces every day — so we build the tools we wished existed.</p>
+      </div>
+      <div class="prod-grid">
+
+        <!-- Werfvolt flagship: keeps its own blue+volt identity -->
+        <div class="prod-card">
+          <div class="current-line volt"></div>
+          <div class="pc-b">
+            <div class="prod-head">
+              <span class="wv-tile"><svg><use href="#wv-bolt"/></svg></span>
+              <span class="word">Werfvolt<small>by Arcadian</small></span>
+              <span class="pill wv" style="margin-left:auto">Live product</span>
+            </div>
+            <h3>The workforce platform for construction subcontracting</h3>
+            <p>Hours, contracts, compliance and billing for clients, subcontractors and their crews — from werf registration to Peppol-ready invoices. Built in Belgium, for Belgian job sites.</p>
+            <div class="prod-feats">
+              <span>Hour registration</span><span>Subcontractor chains</span><span>A1 / LIMOSA compliance</span><span>Billing &amp; Peppol</span><span>Client portal</span>
+            </div>
+            <a class="btn btn-wv" href="https://werfvolt.be" target="_blank" rel="noopener">
+              Visit werfvolt.be&nbsp;→</a>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:16px">
+          <div class="prod-card">
+            <div class="current-line"></div>
+            <div class="pc-b">
+              <div class="prod-head">
+                <span class="logo-tile"><svg><use href="#a-mark"/></svg></span>
+                <span class="word">Field-tested</span>
+              </div>
+              <p>Every feature ships to our own electricians and subcontracting chain first — then to Werfvolt clients. No demo-ware.</p>
+            </div>
+          </div>
+          <div class="prod-card soon">
+            <div class="pc-b">
+              <span class="pill info">In the workshop</span>
+              <p>The next Arcadian product is already on the drawing board.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SERVICES ============ -->
+  <section class="lt" id="services">
+    <div class="wrap">
+      <div class="sect-head">
+        <span class="eyebrow">What we do</span>
+        <h2>From single-line diagram to signed-off site</h2>
+        <p>Design, coordination and installation as one accountable chain.</p>
+      </div>
+      <div class="svc-grid">
+        <div class="card svc">
+          <div class="ic"><i class="bi bi-pencil-square"></i></div>
+          <h3>AutoCAD Electrical Design</h3>
+          <p>We prepare electrical documentation, diagrams, schedules and installation-ready packages for coordination and delivery.</p>
+        </div>
+        <div class="card svc">
+          <div class="ic"><i class="bi bi-tools"></i></div>
+          <h3>Electrical Installation</h3>
+          <p>We deliver classic electrical installation for private clients and as a subcontracting team across Belgium and Poland.</p>
+        </div>
+        <div class="card svc">
+          <div class="ic"><i class="bi bi-lightbulb"></i></div>
+          <h3>KNX/DALI Lighting Control</h3>
+          <p>We design and implement intelligent lighting control and building automation systems based on KNX and DALI standards.</p>
+        </div>
+        <div class="card svc">
+          <div class="ic"><i class="bi bi-diagram-3"></i></div>
+          <h3>BIM/MEP Coordination</h3>
+          <p>We support MEP workflows, coordination and project information exchange to reduce site risk before installation.</p>
+        </div>
+        <div class="card svc">
+          <div class="ic"><i class="bi bi-cloud-check"></i></div>
+          <h3>Trimble Connect Workflows</h3>
+          <p>We organize project collaboration and documentation in Trimble Connect for project teams and subcontractors.</p>
+        </div>
+        <div class="card svc">
+          <div class="ic"><i class="bi bi-shield-check"></i></div>
+          <h3>Documentation &amp; Quality Control</h3>
+          <p>We keep execution materials clear, aligned with scope and ready for a professional project handover.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT / COMPANY ============ -->
+  <section class="lt" id="about">
+    <div class="wrap">
+      <div class="about-grid">
+        <div class="about-copy">
+          <span class="eyebrow">The company</span>
+          <h2>An engineering house, registered and verifiable</h2>
+          <p>ARCADIAN Sp. z o.o. combines disciplined electrical design with hands-on site execution. Design happens in Warsaw; delivery runs through Belgium and the wider EU under one quality standard.</p>
+          <p>We are a registered Polish limited liability company — every number below is public record.</p>
+          <div class="reg-row">
+            <span class="reg-chip">
+              <small>KRS</small>
+              <b>0001242523</b>
+            </span><span class="reg-chip">
+              <small>VAT EU</small>
+              <b>PL 113 320 27 95</b>
+            </span><span class="reg-chip">
+              <small>REGON</small>
+              <b>544816335</b>
+            </span>
+          </div>
+        </div>
+        <div class="card geo-card">
+          <div class="row">
+            <span class="dot"><i class="bi bi-geo-alt"></i></span>
+            <div><b>Registered office — Warsaw</b>
+              <small>ul. Ostrobramska 101/4, 04-041 Warszawa, Poland</small></div>
+          </div>
+          <div class="row">
+            <span class="dot"><i class="bi bi-buildings"></i></span>
+            <div><b>Delivery — Belgium</b>
+              <small>Residential, commercial and enterprise electrical projects</small></div>
+          </div>
+          <div class="row">
+            <span class="dot"><i class="bi bi-lightning-charge"></i></span>
+            <div><b>Software — werfvolt.be</b>
+              <small>Workforce &amp; compliance SaaS, an Arcadian product</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEAM ============ -->
+  <section class="lt" id="team" style="padding-top:0">
+    <div class="wrap">
+      <div class="sect-head">
+        <span class="eyebrow">The people</span>
+        <h2>The first ARCADIAN team</h2>
+        <p>Electrical design, site delivery and project operations.</p>
+      </div>
+      <div class="team-grid">
+        <div class="card tm">
+          <span class="av"><img src="/assets/img/team/tony-k.png?v=ae92cf41a42ff6243383db607a632ca00095facf" alt="TONY K." loading="lazy"></span>
+          <div>
+            <h3>TONY K.</h3>
+            <span class="role">Founder</span>
+            <p>Creation of electrical design projects, including KNX/DALI systems, AutoCAD Electrical documentation and electrical measurements with Sonel MPI 520.</p>
+            <div class="tm-links">
+              <a href="https://www.linkedin.com/in/tony-k-52657a164/" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-linkedin"></i> LinkedIn</a>
+
+            </div>
+          </div>
+        </div>
+        <div class="card tm">
+          <span class="av"><img src="/assets/img/team/yury-k.png?v=ae92cf41a42ff6243383db607a632ca00095facf" alt="YURY K." loading="lazy"></span>
+          <div>
+            <h3>YURY K.</h3>
+            <span class="role">Manager (Poland)</span>
+            <p>Responsible for operational support of projects in Poland, client coordination, procurement and material supply for site delivery.</p>
+            <div class="tm-links">
+              <a href="https://www.linkedin.com/in/yury-kasiakou-a17aaa46/" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-linkedin"></i> LinkedIn</a>
+
+            </div>
+          </div>
+        </div>
+        <div class="card tm">
+          <span class="av"><img src="/assets/img/team/anastasiya-p.png?v=ae92cf41a42ff6243383db607a632ca00095facf" alt="ANASTASIYA P." loading="lazy"></span>
+          <div>
+            <h3>ANASTASIYA P.</h3>
+            <span class="role">Manager (Germany)</span>
+            <p>Coordinator for legal, administrative and documentation matters.</p>
+            <div class="tm-links">
+              <a href="https://www.linkedin.com/in/anastasiyaplekhava/" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-linkedin"></i> LinkedIn</a>
+              <span class="tm-contact">+4915756240180</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="lt contact-sect" id="contact">
+    <div class="wrap">
+      <div class="contact-grid">
+        <div class="side">
+          <span class="eyebrow">Start Your Project</span>
+          <h2>Start with a drawing, a site address — or both</h2>
+          <p>Tell us the scope, location and stage of your project. We typically respond within 24 hours on business days.</p>
+          <div class="c-fact">
+            <span class="ic"><i class="bi bi-envelope"></i></span>
+            <div><b>info@arcadian-eu.com</b>
+              <small>Projects, subcontracting and careers</small></div>
+          </div>
+          <div class="c-fact">
+            <span class="ic"><i class="bi bi-telephone"></i></span>
+            <div><b>+49 157 5624 0180</b>
+              <small>Mon–Fri, 08:00–18:00 CET</small></div>
+          </div>
+          <div class="c-fact">
+            <span class="ic"><i class="bi bi-lightning-charge"></i></span>
+            <div><b>Werfvolt support</b>
+              <small>Product questions → werfvolt.be</small></div>
+          </div>
+        </div>
+
+        <div class="card form-card">
+          <form action="/api/intake/contact" method="post" class="arcadian-contact-form">
+
+            <input type="hidden" name="lang" value="en">
+            <input type="hidden" name="startedAt" value="">
+            <input type="text" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden">
+
+            <div class="f-row">
+              <div>
+                <label class="lbl" for="contact-name">Full Name</label>
+                <div class="control"><input id="contact-name" type="text" name="name" required></div>
+              </div>
+              <div>
+                <label class="lbl" for="contact-email">Email Address</label>
+                <div class="control"><input id="contact-email" type="email" name="email" required></div>
+              </div>
+            </div>
+            <div class="f-row">
+              <div>
+                <label class="lbl" for="contact-phone">Phone Number (Optional)</label>
+                <div class="control"><input id="contact-phone" type="text" name="phone"></div>
+              </div>
+              <div>
+                <label class="lbl" for="contact-inquiry-type">Who is contacting us?</label>
+                <div class="control">
+                  <select id="contact-inquiry-type" name="inquiryType" required>
+                    <option value="client" selected="selected">Client / project request</option>
+                    <option value="subcontractor">Subcontractor</option>
+                    <option value="job">Candidate / job application</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="f-full">
+              <label class="lbl" for="contact-subject">Select Topic</label>
+              <div class="control">
+                <select id="contact-subject" name="subject" required>
+                  <option value="">Select Topic</option>
+                  <option value="general">General Inquiry</option>
+                  <option value="design">Electrical Design</option>
+                  <option value="installation">Electrical Installation</option>
+                  <option value="subcontracting">Subcontracting</option>
+                </select>
+              </div>
+            </div>
+            <div class="f-full">
+              <label class="lbl" for="contact-message">Tell us more about your project</label>
+              <div class="control area">
+                <textarea id="contact-message" name="message" rows="5" required></textarea>
+              </div>
+            </div>
+            <div class="form-note">Project files can be shared safely after the first reply.</div>
+
+            <div class="loading">Sending</div>
+            <div class="error-message"></div>
+            <div class="sent-message">Your request has reached the ARCADIAN office. Anastasiya or a project manager will contact you shortly from +49 157 5624 0180.</div>
+
+            <button type="submit" class="btn btn-copper" style="width:100%">
+              Send message&nbsp;→</button>
+
+            <div class="form-note">
+              <i class="bi bi-info-circle"></i>
+              <span>We typically respond within 24 hours on business days</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+  </main>
+
+  <footer class="site-footer on-dark">
+  <div class="ft">
+    <div class="ft-top">
+      <div class="ft-brand">
+        <span class="brand-lock">
+          <span class="logo-tile"><svg><use href="#a-mark"/></svg></span>
+          <span class="word" style="color:#fff">ARCADIAN<small>Engineering Group</small></span>
+        </span>
+        <p>Electrical engineering, installation and job-site software. Warsaw · Brussels.</p>
+      </div>
+
+      <div class="ft-col">
+        <small>Company</small>
+        <a href="/#about">About</a><a href="/#team">Team</a><a href="/#contact">Contact</a>
+      </div>
+      <div class="ft-col">
+        <small>Products</small>
+        <a href="https://werfvolt.be" target="_blank" rel="noopener">Werfvolt</a>
+      </div>
+      <div class="ft-col">
+        <small>Legal</small>
+        <a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/privacy/#rights">EU data rights</a>
+        <button type="button" class="ft-cookie-btn" data-cookie-action="open">Manage cookies</button>
+      </div>
+      <div class="ft-col">
+        <small>Registry</small>
+        <span class="mono-fact">KRS 0001242523</span>
+        <span class="mono-fact">VAT PL1133202795</span>
+        <span class="mono-fact">REGON 544816335</span>
+      </div>
+    </div>
+
+    <div class="ft-bottom">
+      <span>© 2026 ARCADIAN Sp. z o.o. — ul. Ostrobramska 101/4, Warsaw</span>
+      <span class="sep"></span>
+      <span class="wv-note">
+        <span class="wv-tile"><svg><use href="#wv-bolt"/></svg></span>
+        Werfvolt is an Arcadian product
+      </span>
+    </div>
+  </div>
+
+  <!-- ===================== COOKIE CONSENT ===================== -->
+  <section class="cookie-banner" data-cookie-banner hidden aria-label="Cookie notice">
+    <div class="cookie-banner-card">
+      <div>
+        <h2>Cookies and privacy</h2>
+        <p>
+          ARCADIAN uses necessary cookies for language, security and site operation. Optional preference, analytics or marketing
+          cookies stay off unless you choose to allow them.
+        </p>
+      </div>
+      <div class="cookie-banner-actions" aria-label="Cookie choices">
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="reject">Reject optional</button>
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="open">Manage cookies</button>
+        <button type="button" class="cookie-button cookie-button-primary" data-cookie-action="accept">Accept all</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="cookie-dialog" data-cookie-dialog hidden aria-hidden="true">
+    <div class="cookie-dialog-backdrop" data-cookie-action="close"></div>
+    <section class="cookie-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="cookie-dialog-title">
+      <div class="cookie-dialog-header">
+        <div>
+          <p class="cookie-dialog-eyebrow">EU cookie choices</p>
+          <h2 id="cookie-dialog-title">Manage cookies</h2>
+        </div>
+        <button type="button" class="cookie-dialog-close" data-cookie-action="close" aria-label="Close cookie settings">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <p class="cookie-dialog-intro">
+        Necessary cookies are always on because the site needs them for language preference and request
+        protection. Optional categories are only enabled after consent.
+      </p>
+      <div class="cookie-choice-list">
+        <label class="cookie-choice">
+          <span>
+            <strong>Necessary</strong>
+            <small>Required for the website, security and language preference.</small>
+          </span>
+          <input type="checkbox" checked disabled>
+        </label>
+        <label class="cookie-choice">
+          <span>
+            <strong>Preferences</strong>
+            <small>Stores your browser time zone so dates and messages use your local time.</small>
+          </span>
+          <input id="cookie-preferences" type="checkbox">
+        </label>
+        <label class="cookie-choice">
+          <span>
+            <strong>Analytics</strong>
+            <small>Helps understand aggregate website usage. No analytics tool is enabled by default.</small>
+          </span>
+          <input id="cookie-analytics" type="checkbox">
+        </label>
+        <label class="cookie-choice">
+          <span>
+            <strong>Marketing</strong>
+            <small>Reserved for optional campaign or social media integrations. Off by default.</small>
+          </span>
+          <input id="cookie-marketing" type="checkbox">
+        </label>
+      </div>
+      <div class="cookie-dialog-actions">
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="reject">Reject optional</button>
+        <button type="button" class="cookie-button cookie-button-secondary" data-cookie-action="save">Save preferences</button>
+        <button type="button" class="cookie-button cookie-button-primary" data-cookie-action="accept">Accept all</button>
+      </div>
+    </section>
+  </div>
+</footer>
+
+  <a href="#" id="scroll-top" class="scroll-top" aria-label="Scroll to top">
+    <i class="bi bi-arrow-up-short"></i>
+  </a>
+
+  <script src="/assets/js/arcadian.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+  <script src="/assets/js/contact-form.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+
+
+  <script src="/assets/js/cookie-preferences.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+</body>
+
+</html>
