@@ -175,8 +175,8 @@ label.lbl{display:block;font-size:12.5px;font-weight:600;color:#4a4436;margin:0 
 .hero-stats small{font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#7d8496}
 
 /* ---- layered hero visual: live product (Werfvolt) behind, engineering blueprint in front ---- */
-.hero-visual{position:relative;min-height:480px}
-.schem{position:absolute;left:0;bottom:0;width:84%;z-index:2;border:1px solid rgba(255,255,255,.12);border-radius:16px;
+.hero-visual{position:relative;min-height:528px}
+.schem{position:absolute;left:0;bottom:0;width:92%;z-index:2;border:1px solid rgba(255,255,255,.12);border-radius:16px;
   background:#141c33;overflow:hidden;
   box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04)}
 .schem>.current-line{border-radius:16px 16px 0 0}
@@ -192,7 +192,7 @@ label.lbl{display:block;font-size:12.5px;font-weight:600;color:#4a4436;margin:0 
 /* the Werfvolt app window (back layer) — a faithful, presentational product screenshot.
    overflow:hidden keeps the inner bars/table clipped to the rounded corners; the live badge
    therefore lives OUTSIDE this box, as a sibling in .hero-visual. */
-.app-win{position:absolute;top:0;right:0;width:78%;z-index:1;background:#fff;border-radius:16px;opacity:.96;
+.app-win{position:absolute;top:0;right:0;width:86%;z-index:1;background:#fff;border-radius:16px;opacity:.96;
   overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.4)}
 .aw-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #e7edf5;background:#fbfcfe}
 .aw-bar i{width:9px;height:9px;border-radius:50%;background:#e3e8f0;display:block}
