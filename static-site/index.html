@@ -408,7 +408,7 @@
         </div>
 
         <div class="card form-card">
-          <form action="/api/intake/contact" method="post" class="arcadian-contact-form">
+          <form action="https://werfvolt.be/api/public/leads/form" method="post" enctype="multipart/form-data" class="arcadian-contact-form" data-file-too-large="The file is too large. Please attach a file up to 5 MB.">
 
             <input type="hidden" name="lang" value="en">
             <input type="hidden" name="startedAt" value="">
@@ -458,7 +458,16 @@
                 <textarea id="contact-message" name="message" rows="5" required></textarea>
               </div>
             </div>
-            <div class="form-note">Project files can be shared safely after the first reply.</div>
+            <div class="f-full">
+              <label class="file-upload" for="contact-attachment">
+                <input id="contact-attachment" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.dwg,.dxf,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,application/zip">
+                <span class="fu-ic"><i class="bi bi-paperclip"></i></span>
+                <span>
+                  <strong>Attach CV or project file</strong>
+                  <small data-file-label>PDF, DOCX, JPG, PNG, DWG, DXF or ZIP up to 5 MB</small>
+                </span>
+              </label>
+            </div>
 
             <div class="loading">Sending</div>
             <div class="error-message"></div>
@@ -603,7 +612,7 @@
   </a>
 
   <script src="/assets/js/arcadian.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
-  <script src="/assets/js/contact-form.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
+  <script src="/assets/js/contact-form.js?v=upload-form-20260703"></script>
 
 
   <script src="/assets/js/cookie-preferences.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>

@@ -4,10 +4,18 @@
 (function () {
   "use strict";
 
+  const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+
   document.querySelectorAll(".arcadian-contact-form").forEach((form) => {
     const startedAt = form.querySelector('input[name="startedAt"]');
+    const fileInput = form.querySelector('input[type="file"][name="attachment"]');
+    const fileLabel = form.querySelector("[data-file-label]");
+    const defaultFileLabel = fileLabel ? fileLabel.textContent : "";
     if (startedAt) {
       startedAt.value = String(Date.now());
+    }
+    if (fileInput) {
+      fileInput.addEventListener("change", () => updateFileLabel(fileInput, fileLabel, defaultFileLabel));
     }
 
     form.addEventListener("submit", async (event) => {
@@ -28,35 +36,39 @@
       sentMessage.classList.remove("d-block");
 
       try {
-        const data = Object.fromEntries(new FormData(form).entries());
-        data.startedAt = Number(data.startedAt || Date.now());
+        const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+        if (file && file.size > MAX_ATTACHMENT_BYTES) {
+          throw new Error(form.dataset.fileTooLarge || "The file is too large. Please attach a file up to 5 MB.");
+        }
+        const data = new FormData(form);
+        if (!String(data.get("startedAt") || "").trim()) {
+          data.delete("startedAt");
+        }
 
         const response = await fetch(action, {
           method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-          }
+          body: data
         });
         const text = await response.text();
 
         if (!response.ok) {
-          const serverMessage = text.trim();
+          const payload = parseJson(text);
+          const serverMessage = payload && (payload.message || payload.error)
+            ? (payload.message || payload.error) : text.trim();
           throw new Error(serverMessage && serverMessage.length <= 180
             ? serverMessage
             : "The message could not be sent. Please check the form and try again.");
         }
 
         const payload = parseJson(text);
-        const successMessage = payload && payload.message ? payload.message : text.trim();
-        if (successMessage && successMessage !== "OK") {
-          sentMessage.textContent = successMessage;
+        if (payload && payload.message) {
+          sentMessage.textContent = payload.message;
         }
 
         loading.classList.remove("d-block");
         sentMessage.classList.add("d-block");
         form.reset();
+        updateFileLabel(fileInput, fileLabel, defaultFileLabel);
         if (startedAt) {
           startedAt.value = String(Date.now());
         }
@@ -65,6 +77,28 @@
       }
     });
   });
+
+  function updateFileLabel(fileInput, fileLabel, defaultFileLabel) {
+    if (!fileInput || !fileLabel) {
+      return;
+    }
+    const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+    const wrapper = fileInput.closest(".file-upload");
+    if (wrapper) {
+      wrapper.classList.toggle("is-selected", Boolean(file));
+    }
+    fileLabel.textContent = file ? `${file.name} (${formatSize(file.size)})` : defaultFileLabel;
+  }
+
+  function formatSize(size) {
+    if (size < 1024) {
+      return `${size} B`;
+    }
+    if (size < 1024 * 1024) {
+      return `${Math.round(size / 1024)} KB`;
+    }
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
 
   function showError(loading, errorMessage, message) {
     loading.classList.remove("d-block");

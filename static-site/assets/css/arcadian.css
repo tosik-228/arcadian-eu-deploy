@@ -325,13 +325,14 @@ section.products{padding-top:56px}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .f-full{margin-bottom:14px}
 .form-note{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-top:14px}
-.file-upload{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px dashed var(--line);
-  border-radius:12px;cursor:pointer;transition:border-color .14s,background .14s}
+.file-upload{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px dashed var(--line);
+  border-radius:12px;cursor:pointer;transition:border-color .14s,background .14s;min-height:64px}
 .file-upload:hover{border-color:var(--copper);background:var(--copper-soft)}
+.file-upload.is-selected{border-color:var(--copper);background:var(--copper-soft)}
 .file-upload input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
 .file-upload .fu-ic{width:34px;height:34px;border-radius:9px;background:var(--copper-soft);display:grid;place-items:center;flex:0 0 auto}
 .file-upload strong{display:block;font-size:13px}
-.file-upload small{font-size:11.5px;color:var(--muted)}
+.file-upload small{display:block;font-size:11.5px;color:var(--muted);overflow-wrap:anywhere}
 .loading,.error-message,.sent-message{display:none;font-size:13px;padding:10px 14px;border-radius:10px;margin:12px 0}
 .loading{background:var(--line-2);color:var(--muted)}
 .error-message{background:var(--bad-soft);color:#b13350}
