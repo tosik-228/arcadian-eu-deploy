@@ -1,0 +1,79 @@
+name: Checks & Deploy
+
+# Push to main → validate the HTML, check every link, deploy the App Platform
+# spec (.do/app.yaml) + static site to DigitalOcean, then smoke-test the live
+# site. Pull requests run the checks only.
+#
+# One-time setup: add a DigitalOcean API token (Apps read/write) as the
+# DIGITALOCEAN_ACCESS_TOKEN repository secret.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate HTML (all locales)
+        run: npx --yes html-validate "static-site/**/*.html"
+      - name: Check links
+        # Serves static-site locally and follows every internal link, so a page
+        # renamed in one locale but not the others fails here, not in prod.
+        # Social/maps hosts block bots and are skipped to avoid false alarms.
+        run: >
+          npx --yes linkinator static-site --recurse --verbosity error
+          --skip "linkedin\.com|instagram\.com|facebook\.com|wa\.me|maps\.google\.|google\.com/maps"
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: checks
+    runs-on: ubuntu-latest
+    env:
+      DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+    steps:
+      - name: Require DigitalOcean token
+        if: env.DO_TOKEN == ''
+        run: |
+          echo "::error::DIGITALOCEAN_ACCESS_TOKEN secret is not set. Create a DigitalOcean API token (Apps scope) and add it once under Settings → Secrets → Actions, then re-run this workflow."
+          exit 1
+      - uses: actions/checkout@v4
+      - name: Deploy to DigitalOcean App Platform
+        uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Live pages respond
+        run: |
+          for url in https://arcadian-eu.com/ https://arcadian-eu.com/pl/ https://arcadian-eu.com/nl/ \
+                     https://arcadian-eu.com/privacy/ https://www.arcadian-eu.com/; do
+            echo "GET $url"
+            curl -fsS -o /dev/null --retry 3 --retry-delay 5 "$url"
+          done
+      - name: Contact-form path accepts submissions
+        # The filled "website" honeypot makes werfvolt acknowledge the request
+        # without storing a lead or mailing the office, so this exercises the
+        # whole path (DNS, TLS, rate limiter, multipart parsing) with no side
+        # effects.
+        run: |
+          status=$(curl -s -o /tmp/resp -w '%{http_code}' \
+            -X POST https://werfvolt.be/api/public/leads/form \
+            -H "Origin: https://arcadian-eu.com" \
+            -F name="CI smoke" \
+            -F email="ci-smoke@arcadian-eu.com" \
+            -F subject="CI smoke test" \
+            -F message="Automated post-deploy check; honeypot filled on purpose." \
+            -F website="https://bot.example")
+          cat /tmp/resp; echo
+          test "$status" = "200"

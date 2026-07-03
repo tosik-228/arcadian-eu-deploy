@@ -1,3 +1,10 @@
+# DigitalOcean App Platform spec — the source of truth for the arcadian-eu app.
+# Applied automatically by .github/workflows/deploy.yml on every push to main
+# (digitalocean/app_action picks this file up from its default location).
+#
+# The contact form posts straight to https://werfvolt.be/api/public/leads/form
+# (CORS-limited, throttled and honeypotted on the werfvolt side), so this app
+# is a pure static site — no functions, no secrets.
 name: arcadian-eu
 region: fra
 alerts:
@@ -15,11 +22,6 @@ domains:
 ingress:
   rules:
     - component:
-        name: arcadian-intake
-      match:
-        path:
-          prefix: /api
-    - component:
         name: arcadian-landing
       match:
         path:
@@ -34,18 +36,3 @@ static_sites:
     output_dir: /
     index_document: index.html
     catchall_document: index.html
-functions:
-  - name: arcadian-intake
-    git:
-      repo_clone_url: https://github.com/tosik-228/arcadian-eu-deploy.git
-      branch: main
-    source_dir: functions
-    envs:
-      - key: WERFVOLT_LEAD_ENDPOINT
-        value: https://werfvolt.be/api/public/leads
-        scope: RUN_AND_BUILD_TIME
-        type: GENERAL
-      - key: WERFVOLT_INTAKE_API_KEY
-        value: REPLACE_IN_DIGITALOCEAN_APP_SECRET
-        scope: RUN_AND_BUILD_TIME
-        type: SECRET
