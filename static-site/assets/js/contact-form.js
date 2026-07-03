@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+  const MAX_ATTACHMENT_BYTES = 100 * 1024 * 1024;
 
   document.querySelectorAll(".arcadian-contact-form").forEach((form) => {
     const startedAt = form.querySelector('input[name="startedAt"]');
@@ -38,7 +38,7 @@
       try {
         const file = fileInput && fileInput.files ? fileInput.files[0] : null;
         if (file && file.size > MAX_ATTACHMENT_BYTES) {
-          throw new Error(form.dataset.fileTooLarge || "The file is too large. Please attach a file up to 5 MB.");
+          throw new Error(form.dataset.fileTooLarge || "The file is too large. Please attach a file up to 100 MB.");
         }
         const data = new FormData(form);
         if (!String(data.get("startedAt") || "").trim()) {
