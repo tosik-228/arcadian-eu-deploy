@@ -12,13 +12,14 @@ alerts:
   - rule: DOMAIN_FAILED
 features:
   - buildpack-stack=ubuntu-22
+# NB: keep this spec structurally identical to the live app — the CI token has
+# app read/update only, and DigitalOcean 403s a spec that adds or removes
+# components (do such changes once in the console, then mirror them here).
 domains:
   - domain: arcadian-eu.com
     type: PRIMARY
-    minimum_tls_version: "1.2"
   - domain: www.arcadian-eu.com
     type: ALIAS
-    minimum_tls_version: "1.2"
 ingress:
   rules:
     - component:
