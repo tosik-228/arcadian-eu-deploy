@@ -30,12 +30,15 @@ for relative_page in index.html pl/index.html nl/index.html; do
   action_count=$({ grep -F -o 'data-action="arcadian_contact"' "$source_page" || true; } | wc -l | tr -d '[:space:]')
   disabled_submit_count=$({ grep -F -o 'disabled aria-disabled="true"' "$source_page" || true; } | wc -l | tr -d '[:space:]')
   explicit_script_count=$({ grep -F -o 'turnstile/v0/api.js?render=explicit' "$source_page" || true; } | wc -l | tr -d '[:space:]')
+  deferred_script_count=$({ grep -F 'turnstile/v0/api.js?render=explicit' "$source_page" \
+    | grep -E -c '(^|[[:space:]])(async|defer)([[:space:]>]|=)' || true; })
   if [ "$placeholder_count" != "1" ]; then
     echo "$relative_page must contain exactly one Turnstile sitekey placeholder; found $placeholder_count." >&2
     exit 1
   fi
-  if [ "$action_count" != "1" ] || [ "$disabled_submit_count" != "1" ] || [ "$explicit_script_count" != "1" ]; then
-    echo "$relative_page must keep explicit action=arcadian_contact and an initially disabled submit button." >&2
+  if [ "$action_count" != "1" ] || [ "$disabled_submit_count" != "1" ] \
+     || [ "$explicit_script_count" != "1" ] || [ "$deferred_script_count" != "0" ]; then
+    echo "$relative_page must keep synchronous explicit Turnstile loading, action=arcadian_contact and an initially disabled submit button." >&2
     exit 1
   fi
 done
