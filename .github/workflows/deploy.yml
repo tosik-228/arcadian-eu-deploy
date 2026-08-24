@@ -5,7 +5,8 @@ name: Checks & Deploy
 # site. Pull requests run the checks only.
 #
 # One-time setup: add a DigitalOcean API token (Apps read/write) as the
-# DIGITALOCEAN_ACCESS_TOKEN repository secret.
+# DIGITALOCEAN_ACCESS_TOKEN repository secret and a public Turnstile sitekey
+# as the TURNSTILE_SITEKEY repository variable.
 
 on:
   push:
@@ -22,14 +23,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Check contact-form JavaScript
+        run: node --check static-site/assets/js/contact-form.js
+      - name: Build static site with Turnstile configuration
+        # Deliberately not a Cloudflare test or production key: this only
+        # exercises deterministic config injection and fail-closed checks.
+        env:
+          TURNSTILE_SITEKEY: ci_only_invalid_sitekey_20260824
+        run: sh static-site/build-turnstile-site.sh
       - name: Validate HTML (all locales)
-        run: npx --yes html-validate "static-site/**/*.html"
+        run: npx --yes html-validate "static-site/dist/**/*.html"
       - name: Check links
-        # Serves static-site locally and follows every internal link, so a page
+        # Serves the built site locally and follows every internal link, so a page
         # renamed in one locale but not the others fails here, not in prod.
         # Social/maps hosts block bots and are skipped to avoid false alarms.
         run: >
-          npx --yes linkinator static-site --recurse --verbosity error
+          npx --yes linkinator static-site/dist --recurse --verbosity error
           --skip "linkedin\.com|instagram\.com|facebook\.com|wa\.me|maps\.google\.|google\.com/maps"
 
   deploy:
@@ -45,6 +54,25 @@ jobs:
           echo "::error::DIGITALOCEAN_ACCESS_TOKEN secret is not set. Create a DigitalOcean API token (Apps scope) and add it once under Settings → Secrets → Actions, then re-run this workflow."
           exit 1
       - uses: actions/checkout@v4
+      - name: Require and configure Turnstile sitekey
+        env:
+          TURNSTILE_SITEKEY: ${{ vars.TURNSTILE_SITEKEY }}
+        run: |
+          if [ "$TURNSTILE_SITEKEY" = '__TURNSTILE_SITEKEY__' ] || \
+             ! printf '%s' "$TURNSTILE_SITEKEY" | grep -Eq '^[A-Za-z0-9_-]{10,100}$'; then
+            echo "::error::TURNSTILE_SITEKEY repository variable is missing or malformed. Configure the public sitekey under Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+          placeholder_count=$({ grep -F -o '__TURNSTILE_SITEKEY__' .do/app.yaml || true; } | wc -l | tr -d '[:space:]')
+          if [ "$placeholder_count" != "1" ]; then
+            echo "::error::.do/app.yaml must contain exactly one Turnstile sitekey placeholder; found $placeholder_count."
+            exit 1
+          fi
+          sed -i "s|__TURNSTILE_SITEKEY__|$TURNSTILE_SITEKEY|g" .do/app.yaml
+          if grep -F -q '__TURNSTILE_SITEKEY__' .do/app.yaml; then
+            echo "::error::Turnstile sitekey placeholder was not resolved."
+            exit 1
+          fi
       - name: Deploy to DigitalOcean App Platform
         uses: digitalocean/app_action/deploy@v2
         with:
