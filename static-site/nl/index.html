@@ -36,7 +36,7 @@
 
   <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
 
-  <link href="/assets/css/arcadian.css?v=20260703-hero-fav" rel="stylesheet">
+  <link href="/assets/css/arcadian.css?v=20260824-turnstile" rel="stylesheet">
   <link href="/assets/css/legal-footer.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
 </head>
 
@@ -289,7 +289,13 @@
         </div>
 
         <div class="card form-card">
-          <form action="https://werfvolt.be/api/public/leads/form" method="post" enctype="multipart/form-data" class="arcadian-contact-form" data-file-too-large="Het bestand is te groot. Voeg een bestand tot 100 MB toe.">
+          <form action="https://werfvolt.be/api/public/leads/form" method="post" enctype="multipart/form-data" class="arcadian-contact-form"
+                data-file-too-large="Het bestand is te groot. Voeg een bestand tot 50 MB toe."
+                data-turnstile-required="Voltooi de anti-botcontrole voordat je het formulier verstuurt."
+                data-turnstile-unavailable="De anti-botcontrole is niet beschikbaar. Herlaad de pagina en probeer opnieuw."
+                data-turnstile-expired="De anti-botcontrole is verlopen. Voltooi deze opnieuw."
+                data-turnstile-error="De anti-botcontrole is mislukt. Wacht tot deze opnieuw is geladen."
+                data-turnstile-config="De beveiligingscontrole van het formulier is niet geconfigureerd.">
 
             <input type="hidden" name="lang" value="nl">
             <input type="hidden" name="startedAt" value="">
@@ -345,16 +351,21 @@
                 <span class="fu-ic"><i class="bi bi-paperclip"></i></span>
                 <span>
                   <strong>Voeg CV, projectbestand of ZIP-map toe</strong>
-                  <small data-file-label>PDF, DOCX, JPG, PNG, DWG, DXF of ZIP-map tot 100 MB</small>
+                  <small data-file-label>PDF, DOCX, JPG, PNG, DWG, DXF of ZIP-map tot 50 MB</small>
                 </span>
               </label>
+            </div>
+
+            <div class="turnstile-shell">
+              <div data-turnstile-container data-sitekey="__TURNSTILE_SITEKEY__" data-action="arcadian_contact"></div>
+              <p class="turnstile-status" data-turnstile-status role="alert" aria-live="polite"></p>
             </div>
 
             <div class="loading">Versturen</div>
             <div class="error-message"></div>
             <div class="sent-message">Je bericht is aangekomen bij ARCADIAN. Anastasiya of een projectmanager neemt binnenkort contact op via +49 157 5624 0180.</div>
 
-            <button type="submit" class="btn btn-copper" style="width:100%">
+            <button type="submit" class="btn btn-copper" style="width:100%" disabled aria-disabled="true">
               Verstuur bericht&nbsp;→</button>
 
             <div class="form-note">
@@ -586,7 +597,8 @@
   </a>
 
   <script src="/assets/js/arcadian.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
-  <script src="/assets/js/contact-form.js?v=upload-form-100mb-20260703"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  <script src="/assets/js/contact-form.js?v=turnstile-20260824"></script>
 
 
   <script src="/assets/js/cookie-preferences.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>

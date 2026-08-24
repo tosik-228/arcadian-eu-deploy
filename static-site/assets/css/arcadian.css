@@ -108,6 +108,7 @@ img{max-width:100%;display:block}
   box-shadow:0 6px 18px rgba(59,91,253,.32)}
 .btn-wv:hover{filter:brightness(1.08)}
 .btn-sm{height:36px;padding:0 16px;border-radius:9px;font-size:13px}
+.btn:disabled,.btn:disabled:hover{cursor:not-allowed;filter:none;box-shadow:none;opacity:.55}
 
 /* ---- cards / pills / chips ---- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -333,6 +334,10 @@ section.products{padding-top:56px}
 .file-upload .fu-ic{width:34px;height:34px;border-radius:9px;background:var(--copper-soft);display:grid;place-items:center;flex:0 0 auto}
 .file-upload strong{display:block;font-size:13px}
 .file-upload small{display:block;font-size:11.5px;color:var(--muted);overflow-wrap:anywhere}
+.turnstile-shell{display:grid;gap:7px;margin:2px 0 14px}
+.turnstile-shell [data-turnstile-container]{width:100%;min-height:65px}
+.turnstile-status{display:none;margin:0;font-size:12.5px;color:#b13350}
+.turnstile-status.is-visible{display:block}
 .loading,.error-message,.sent-message{display:none;font-size:13px;padding:10px 14px;border-radius:10px;margin:12px 0}
 .loading{background:var(--line-2);color:var(--muted)}
 .error-message{background:var(--bad-soft);color:#b13350}
