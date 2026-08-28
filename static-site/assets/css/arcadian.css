@@ -303,7 +303,7 @@ section.products{padding-top:56px}
 .geo-card small{color:var(--muted);font-size:12.5px}
 
 /* team */
-.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:16px}
 .tm{padding:24px;display:flex;gap:16px;align-items:flex-start}
 .tm h3{font-size:15.5px}
 .tm .role{font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--copper);margin:3px 0 8px;display:block}
