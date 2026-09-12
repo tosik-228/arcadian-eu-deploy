@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" viewBox="0 0 512 512">
-<title>Arcadian</title>
+<title>Werfvolt</title>
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e8873c"/><stop offset="1" stop-color="#a4551d"/></linearGradient>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#255bea"/><stop offset="1" stop-color="#102450"/></linearGradient>
  <polygon id="star" points="0,-28 6.2864,-8.6525 26.6296,-8.6525 10.1716,3.305 16.458,22.6525 0,10.695 -16.458,22.6525 -10.1716,3.305 -26.6296,-8.6525 -6.2864,-8.6525" fill="#ffdf00"/>
 </defs>
 <rect width="512" height="512" rx="118" fill="url(#bg)"/>
@@ -17,9 +17,9 @@
 <use href="#star" x="58.88" y="256"/>
 <use href="#star" x="85.2891" y="157.44"/>
 <use href="#star" x="157.44" y="85.2891"/></g>
-<g transform="translate(256 256) scale(7.04) translate(-24.8 -24)">
-    <path d="M24 8 10 40h6.4l7.6-19.6L31.6 40H38L24 8Z" fill="#fff"/>
-    <path d="M19 29h14.5" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
-    <circle cx="38.5" cy="29" r="3.4" fill="#ffd9ae"/>
+<g fill="#fff" transform="translate(122.88 143.36) scale(0.4429950083194676 0.5467961165048544)">
+    <path d="M0 0H95L187 215 227 151 287 246 184 412Z"/>
+    <path d="M296 35 241 125 414 412 460 310Z"/>
+    <path d="M507 0H601L466 295 416 215Z"/>
   </g>
 </svg>
