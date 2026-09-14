@@ -60,7 +60,7 @@ img{max-width:100%;display:block}
 .logo-tile{width:38px;height:38px;border-radius:10px;flex:0 0 auto;
   background:linear-gradient(150deg,var(--copper-bright),var(--copper-deep));
   display:grid;place-items:center;box-shadow:0 4px 14px rgba(201,111,46,.38)}
-.logo-tile svg{width:24px;height:24px;display:block}
+.logo-tile img{width:100%;height:100%;display:block;border-radius:inherit}
 .brand-lock{display:inline-flex;align-items:center;gap:12px}
 .brand-lock .word{font-family:var(--display);font-weight:600;font-size:17px;
   letter-spacing:.22em;color:var(--text)}
@@ -71,7 +71,7 @@ img{max-width:100%;display:block}
 .wv-tile{width:38px;height:38px;border-radius:10px;flex:0 0 auto;
   background:linear-gradient(150deg,var(--wv-blue),var(--wv-blue-deep));
   display:grid;place-items:center;box-shadow:0 4px 14px rgba(59,91,253,.4)}
-.wv-tile svg{width:24px;height:24px}
+.wv-tile img{width:100%;height:100%;display:block;border-radius:inherit}
 
 /* ---- the current line ---- */
 @keyframes current{0%{background-position:240% 0}100%{background-position:-140% 0}}
@@ -200,7 +200,7 @@ label.lbl{display:block;font-size:12.5px;font-weight:600;color:#4a4436;margin:0 
 .aw-bar .url{margin-left:8px;font:500 11px var(--mono);color:#5b678e;background:#f1f5fb;border-radius:7px;padding:4px 10px}
 .aw-bar .wv-mini{width:20px;height:20px;border-radius:6px;margin-left:auto;
   background:linear-gradient(150deg,var(--wv-blue),var(--wv-blue-deep));display:grid;place-items:center}
-.aw-bar .wv-mini svg{width:13px;height:13px}
+.aw-bar .wv-mini img{width:100%;height:100%;display:block;border-radius:inherit}
 .aw-body{display:flex}
 .aw-side{width:44px;background:#0b1020;padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:10px}
 .aw-side i{width:22px;height:22px;border-radius:6px;background:#1c2942;display:block}
@@ -399,7 +399,6 @@ footer.site-footer{background:var(--ink);color:#8b93a8;padding:54px 24px 34px}
 .ft-bottom .sep{flex:1}
 .wv-note{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#aeb4c4}
 .wv-note .wv-tile{width:22px;height:22px;border-radius:6px;box-shadow:none}
-.wv-note .wv-tile svg{width:14px;height:14px}
 
 /* scroll-top */
 .scroll-top{position:fixed;right:18px;bottom:18px;width:40px;height:40px;border-radius:11px;z-index:60;
