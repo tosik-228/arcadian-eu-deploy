@@ -27,6 +27,11 @@ html[data-theme="dark"]{
   --canvas:#0b1020;--panel:#131a2e;--soft:#242133;--line:#2b3348;
   --text:#edf0f6;--muted:#b0b7c6;--copper-deep:#eea56e;
   --primary:#eea56e;--darkened-bg:#1a2338;--link-hover-color:#ffc18f;
+  --body-fg:var(--text);--body-bg:var(--canvas);--body-quiet-color:var(--muted);--body-medium-color:var(--muted);--body-loud-color:var(--text);
+  --breadcrumbs-fg:var(--muted);--breadcrumbs-link-fg:var(--copper-deep);--breadcrumbs-bg:var(--canvas);
+  --link-fg:var(--copper-deep);--link-selected-fg:var(--copper-deep);--hairline-color:var(--line);--border-color:var(--line);--selected-bg:var(--soft);--selected-row:var(--soft);
+  --button-bg:#a4551d;--button-hover-bg:#8d4312;--default-button-bg:#a4551d;--default-button-hover-bg:#8d4312;
+  --object-tools-fg:var(--text);--object-tools-bg:var(--panel);--object-tools-hover-bg:var(--soft);
   --error-fg:#ff9db2;--message-error-bg:#39202d;--message-warning-bg:#342b20;--message-success-bg:#15352f;
 }
 *{box-sizing:border-box}
