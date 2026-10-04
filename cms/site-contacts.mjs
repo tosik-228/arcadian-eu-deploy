@@ -18,12 +18,12 @@ export function contactFacts(locale) {
   const t = labels[locale];
   return `<div class="c-fact">
             <span class="ic"><i class="bi bi-envelope" aria-hidden="true"></i></span>
-            <div><div class="contact-value"><b><a href="mailto:${siteContacts.email}">${siteContacts.email}</a></b>${whatsapp(siteContacts.main, t.whatsapp)}</div>
+            <div><div class="contact-value"><b><a href="mailto:${siteContacts.email}">${siteContacts.email}</a></b></div>
               <small>${t.email}</small></div>
           </div>
           <div class="c-fact">
             <span class="ic"><i class="bi bi-telephone" aria-hidden="true"></i></span>
-            <div><b>${phone(siteContacts.main)}</b>
+            <div><div class="contact-value"><b>${phone(siteContacts.main)}</b>${whatsapp(siteContacts.main, t.whatsapp)}</div>
               <small>${t.main} · ${t.hours}</small></div>
           </div>
           <div class="c-fact">
@@ -35,11 +35,11 @@ export function contactFacts(locale) {
 
 export function contactStrip(locale) {
   const t = labels[locale];
-  return `<div class="content-contacts">
-      <div class="content-contact"><span>${t.main}</span><div class="contact-value">${phone(siteContacts.main)}</div></div>
-      <div class="content-contact"><span>Email · WhatsApp</span><div class="contact-value"><a href="mailto:${siteContacts.email}">${siteContacts.email}</a>${whatsapp(siteContacts.main, t.whatsapp)}</div></div>
+  return `<div class="content-contacts"><div class="content-wrap">
+      <div class="content-contact"><span>${t.main}</span><div class="contact-value">${phone(siteContacts.main)}${whatsapp(siteContacts.main, t.whatsapp)}</div></div>
+      <div class="content-contact content-contact--email"><i class="bi bi-envelope" aria-hidden="true"></i><div class="contact-value"><a href="mailto:${siteContacts.email}">${siteContacts.email}</a></div></div>
       <div class="content-contact"><span>${t.poland}</span><div class="contact-value">${phone(siteContacts.poland)}${whatsapp(siteContacts.poland, t.whatsapp)}</div></div>
-    </div>`;
+    </div></div>`;
 }
 
 export function contactConfirmation(locale) {
