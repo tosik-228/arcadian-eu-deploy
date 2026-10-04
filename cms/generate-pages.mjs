@@ -1,4 +1,4 @@
-import {readFile, mkdir, writeFile} from 'node:fs/promises';
+import {readFile, mkdir, writeFile, readdir} from 'node:fs/promises';
 import {siteContacts, contactFacts, contactStrip, contactConfirmation} from './site-contacts.mjs';
 
 const site = new URL('../static-site/', import.meta.url);
@@ -13,9 +13,18 @@ const documentCopy = {
   pl: {ratesIntro: 'Aktualne cenniki i warunki współpracy według rodzaju prac. Przeglądaj lub pobierz opublikowane dokumenty PDF. Podstawa rozliczenia i organizacja pracy są określone w każdym dokumencie.', electricalTrade: 'Elektrycy', facadeTrade: 'Specjaliści od elewacji', finishingTrade: 'Pracownicy wykończeniowi', crews: 'Brygady podwykonawcze', tradeIntro: 'Opublikowane cenniki PDF i warunki współpracy dla tego rodzaju prac. Przejrzyj dokument lub pobierz kopię.', crewsIntro: 'Współpraca z samodzielnymi brygadami z własnym samochodem, narzędziami i zakwaterowaniem. Dokumenty PDF określają zakres prac, stawki i warunki współpracy.', viewRates: 'Zobacz cenniki →'},
   nl: {ratesIntro: 'Actuele tarieflijsten en samenwerkingsvoorwaarden per vakgebied. Bekijk of download de gepubliceerde PDF-documenten. De betalingsbasis en werkafspraken staan in elk document.', electricalTrade: 'Elektriciens', facadeTrade: 'Gevelspecialisten', finishingTrade: 'Afwerkingsspecialisten', crews: 'Onderaannemersploegen', tradeIntro: 'Gepubliceerde PDF-tarieflijsten en samenwerkingsvoorwaarden voor dit vakgebied. Bekijk het document of download een exemplaar.', crewsIntro: 'Samenwerking met zelfstandige ploegen met eigen voertuig, gereedschap en huisvesting. De PDF-documenten beschrijven de werkzaamheden, tarieven en samenwerkingsvoorwaarden.', viewRates: 'Bekijk tarieflijsten →'},
 };
+const cooperationCopy = {
+  en: {employees: 'For employees', employeeOffer: 'Join our team in electrical, facade or finishing work. Select your trade, review the PDF rates and contact us about the role.', crewsOfferTitle: 'For subcontractor crews', crewOffer: 'Independent crews with their own vehicle, tools and accommodation. Review PDF rates and cooperation terms for your team.', employeeAction: 'View trade rates', crewAction: 'View crew terms'},
+  pl: {employees: 'Dla pracowników', employeeOffer: 'Dołącz do naszego zespołu przy pracach elektrycznych, elewacyjnych lub wykończeniowych. Wybierz specjalizację, sprawdź stawki w PDF i skontaktuj się z nami w sprawie pracy.', crewsOfferTitle: 'Dla brygad podwykonawczych', crewOffer: 'Samodzielne brygady z własnym samochodem, narzędziami i zakwaterowaniem. Sprawdź stawki w PDF i warunki współpracy dla swojego zespołu.', employeeAction: 'Zobacz stawki dla specjalizacji', crewAction: 'Zobacz warunki dla brygad'},
+  nl: {employees: 'Voor werknemers', employeeOffer: 'Werk in ons team aan elektrische installaties, gevels of afwerking. Kies uw vakgebied, bekijk de PDF-tarieven en neem contact op over de functie.', crewsOfferTitle: 'Voor onderaannemersploegen', crewOffer: 'Zelfstandige ploegen met eigen voertuig, gereedschap en huisvesting. Bekijk de PDF-tarieven en samenwerkingsvoorwaarden voor uw ploeg.', employeeAction: 'Bekijk tarieven per vakgebied', crewAction: 'Bekijk voorwaarden voor ploegen'},
+};
+const cooperationOffers = (copy, section) => `<div class="cooperation-offers">
+      <section class="cooperation-offer" aria-labelledby="employee-offer"><h2 id="employee-offer">${copy.employees}</h2><p>${copy.employeeOffer}</p><a class="cooperation-link" href="${section === 'rates' ? '#trade-rates' : '/' + copy.prefix + 'rates/#trade-rates'}">${copy.employeeAction}<span aria-hidden="true">→</span></a></section>
+      <section class="cooperation-offer" aria-labelledby="crew-offer"><h2 id="crew-offer">${copy.crewsOfferTitle}</h2><p>${copy.crewOffer}</p><a class="cooperation-link" href="${section === 'subcontractors' ? '#rate-documents' : '/' + copy.prefix + 'subcontractors/'}">${copy.crewAction}<span aria-hidden="true">→</span></a></section>
+    </div>`;
 const cleanHtml = (value) => value.replace(/&amp;(nbsp|times);/g, '&$1;').replace(/&(?!(?:amp|lt|gt|quot|nbsp|times|copy);|#[0-9]+;|#x[0-9a-f]+;)/gi, '&amp;').replace(/[ \t]+\n/g, '\n');
 for (const [locale, copy] of Object.entries(locales)) {
-  Object.assign(copy, documentCopy[locale]);
+  Object.assign(copy, documentCopy[locale], cooperationCopy[locale]);
   const sourceUrl = new URL(`${copy.prefix}index.html`, site);
   let source = await readFile(sourceUrl, 'utf8');
   if (!source.includes('<!-- site-contacts:start -->') || !source.includes('<!-- site-contacts:end -->')) throw new Error(`Missing public contact section: ${copy.prefix}index.html`);
@@ -27,10 +36,10 @@ for (const [locale, copy] of Object.entries(locales)) {
     organization.contactPoint = [{ '@type': 'ContactPoint', telephone: siteContacts.poland.number, contactType: 'Corporate office in Poland' }];
     return `${start}${JSON.stringify(organization)}${end}`;
   });
-  source = source.replace(/\/assets\/css\/content\.css\?v=[A-Za-z0-9_-]+/g, '/assets/css/content.css?v=contacts-20261005');
+  source = source.replace(/\/assets\/css\/content\.css\?v=[A-Za-z0-9_-]+/g, '/assets/css/content.css?v=cooperation-20261005');
   const links = `<a href="/${copy.prefix}gallery/">${copy.work}</a><a href="/${copy.prefix}rates/">${copy.rates}</a>`;
   source = source.replace(/(<div class="nav-links" id="nav-links">\s*)([\s\S]*?)(\s*<\/div>)/, (_, start, body, end) => `${start}${body.replace(/<a href="[^\"]*\/#team">[\s\S]*?<\/a>/, '').replace(/<a href="[^\"]*\/#about">[\s\S]*?<\/a>/, '')}${body.includes('/gallery/') ? '' : links}${end}`);
-  if (!source.includes('/assets/css/content.css')) source = source.replace('</head>', '  <link href="/assets/css/content.css?v=contacts-20261005" rel="stylesheet">\n</head>');
+  if (!source.includes('/assets/css/content.css')) source = source.replace('</head>', '  <link href="/assets/css/content.css?v=cooperation-20261005" rel="stylesheet">\n</head>');
   if (!source.includes('id="work-and-cooperation"')) {
     const section = `  <section class="lt" id="work-and-cooperation">\n    <div class="content-wrap">\n      <div class="sect-head"><span class="eyebrow">ARCADIAN</span><h2>${copy.homeIntro}</h2><p>${copy.homeDescription}</p></div>\n      <div class="services-entry">\n        <a href="/${copy.prefix}gallery/"><span class="eyebrow">${copy.finishing} · ${copy.facades}</span><h3>${copy.work}</h3><p>${copy.renovationDescription}</p><span class="entry-link">${copy.open}</span></a>\n        <a href="/${copy.prefix}electrical/"><span class="eyebrow">${copy.electricalFilter}</span><h3>${copy.electrical}</h3><p>${copy.electricalDescription}</p><span class="entry-link">${copy.open}</span></a>\n        <a href="/${copy.prefix}rates/"><span class="eyebrow">ARCADIAN</span><h3>${copy.rates}</h3><p>${copy.ratesDescription}</p><span class="entry-link">${copy.open}</span></a>\n      </div>\n    </div>\n  </section>\n\n`;
     source = source.replace('  <section class="lt blueprint products"', section + '  <section class="lt blueprint products"');
@@ -52,13 +61,25 @@ for (const [locale, copy] of Object.entries(locales)) {
     head = head.replace(/(<link rel="alternate" hreflang="(en|nl|pl|x-default)" href=")[^"]+(">)/g, (_, before, lang, after) => `${before}https://arcadian-eu.com/${lang === 'pl' || lang === 'nl' ? lang + '/' : ''}${section}/${after}`);
     head = head.replace(/(<div class="lang">)[\s\S]*?(<\/div>)/, `$1<a href="/gallery/" aria-label="English"${locale === 'en' ? ' class="on"' : ''}>EN</a><a href="/pl/gallery/" aria-label="Polski"${locale === 'pl' ? ' class="on"' : ''}>PL</a><a href="/nl/gallery/" aria-label="Nederlands"${locale === 'nl' ? ' class="on"' : ''}>NL</a>$2`).replaceAll('gallery/" aria-label=', `${section}/" aria-label=`);
     const footer = source.slice(source.indexOf('  <footer'), source.indexOf('</footer>') + '</footer>'.length);
-    const documentNav = isDocument ? `<nav class="document-sections" aria-label="${copy.rates}">${trades.map(([sector, label, path]) => `<a href="/${copy.prefix}${path}/"${trade?.[0] === sector ? ' aria-current="page"' : ''}><span class="eyebrow">PDF</span><h2>${label}</h2><span class="entry-link">${copy.viewRates}</span></a>`).join('')}</nav>` : '';
+    const documentNav = isDocument ? `<nav class="document-sections" id="trade-rates" aria-label="${copy.rates}">${trades.map(([sector, label, path]) => `<a href="/${copy.prefix}${path}/"${trade?.[0] === sector ? ' aria-current="page"' : ''}><span class="eyebrow">PDF</span><h2>${label}</h2><span class="entry-link">${copy.viewRates}</span></a>`).join('')}</nav>` : '';
     const filters = isDocument || section === 'electrical' ? '' : `<div class="content-filters" role="group" aria-label="${copy.work}">${[['', copy.all], ['finishing', copy.finishing], ['facades', copy.facades], ['electrical', copy.electricalFilter]].map(([value, text]) => `<button type="button" data-sector="${value}" aria-pressed="${value === ''}">${text}</button>`).join('')}</div>`;
     const dialog = isDocument ? '' : `<dialog class="photo-dialog" data-photo-dialog aria-label="${copy.work}"><div class="photo-bar"><span data-photo-position></span><div class="photo-controls"><button type="button" data-photo-previous aria-label="${copy.prev}">←</button><button type="button" data-photo-next aria-label="${copy.next}">→</button><button type="button" data-photo-close>${copy.close}</button></div></div><img src="/assets/img/icon.svg" alt=""><p class="photo-caption" data-photo-caption></p></dialog>`;
-    const html = `${head}  <main class="main" data-content-page="${isDocument ? 'documents' : 'gallery'}"${trade ? ` data-content-sector="${trade[0]}"` : section === 'electrical' ? ' data-content-sector="electrical"' : ''}>\n    <header class="content-head"><div class="content-wrap"><span class="eyebrow on-dark">ARCADIAN</span><h1>${title}</h1><p>${intro}</p>${isDocument ? contactStrip(locale) : ''}</div></header>\n    <section class="content-body" aria-label="${title}"><div class="content-wrap">${documentNav}${filters}<p class="content-status" data-content-status role="status">${copy.loading}</p><div class="content-grid" data-content-list></div><button type="button" class="btn btn-outline content-more" data-content-more hidden>${copy.more}</button><div class="content-cta"><p>${copy.cta}</p><a class="btn btn-copper" href="/${copy.prefix}#contact">${copy.contact}</a></div><noscript><p>${copy.cta} <a href="/${copy.prefix}#contact">${copy.contact}</a></p></noscript></div></section>\n    ${dialog}\n  </main>\n${footer}\n  <script src="/assets/js/arcadian.js"></script>\n  <script src="/assets/js/content-config.js"></script>\n  <script src="/assets/js/content.js?v=cms-v2"></script>\n  <script src="/assets/js/cookie-preferences.js"></script>\n</body>\n</html>\n`;
+    const hero = `<header class="content-head${isDocument ? ' cooperation-head' : ''}"><div class="content-wrap"><span class="eyebrow on-dark">ARCADIAN</span><h1>${title}</h1>${isDocument ? cooperationOffers(copy, section) : '<p>' + intro + '</p>'}</div>${isDocument ? contactStrip(locale) : ''}</header>`;
+    const html = `${head}  <main class="main" data-content-page="${isDocument ? 'documents' : 'gallery'}"${trade ? ` data-content-sector="${trade[0]}"` : section === 'electrical' ? ' data-content-sector="electrical"' : ''}>\n    ${hero}\n    <section class="content-body" aria-label="${title}"><div class="content-wrap">${documentNav}${filters}<p class="content-status" data-content-status role="status">${copy.loading}</p><div class="content-grid"${isDocument ? ' id="rate-documents"' : ''} data-content-list></div><button type="button" class="btn btn-outline content-more" data-content-more hidden>${copy.more}</button><div class="content-cta"><p>${copy.cta}</p><a class="btn btn-copper" href="/${copy.prefix}#contact">${copy.contact}</a></div><noscript><p>${copy.cta} <a href="/${copy.prefix}#contact">${copy.contact}</a></p></noscript></div></section>\n    ${dialog}\n  </main>\n${footer}\n  <script src="/assets/js/arcadian.js"></script>\n  <script src="/assets/js/content-config.js"></script>\n  <script src="/assets/js/content.js?v=cms-v2"></script>\n  <script src="/assets/js/cookie-preferences.js"></script>\n</body>\n</html>\n`;
     const destination = new URL(`${copy.prefix}${section}/`, site);
     await mkdir(destination, {recursive: true});
     await writeFile(new URL('index.html', destination), cleanHtml(html));
   }
 }
-console.log('Generated galleries and PDF rate pages for four categories in EN, PL and NL.');
+async function refreshNavigation(directory) {
+  for (const entry of await readdir(directory, {withFileTypes: true})) {
+    const path = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directory);
+    if (entry.isDirectory() && !['assets', 'dist'].includes(entry.name) && !entry.name.startsWith('.')) await refreshNavigation(path);
+    if (!entry.isFile() || !entry.name.endsWith('.html')) continue;
+    const original = await readFile(path, 'utf8');
+    const updated = original.replace(/<nav\b[^>]*\bid="site-nav"[^>]*>[\s\S]*?<\/nav>/g, nav => nav.replace('<small>Engineering Group</small>', ''));
+    if (updated !== original) await writeFile(path, updated);
+  }
+}
+await refreshNavigation(site);
+console.log('Generated galleries and cooperation pages, and refreshed navigation in EN, PL and NL.');

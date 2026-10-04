@@ -2,12 +2,23 @@
 .content-wrap{max-width:1180px;margin:0 auto}
 .content-head h1{color:#fff;font-size:clamp(30px,4vw,48px);max-width:780px;margin:14px 0 18px;overflow-wrap:anywhere;hyphens:auto}
 .content-head p{max-width:670px;font-size:16px;line-height:1.7}
-.content-contacts{display:flex;align-items:flex-start;gap:18px 32px;flex-wrap:wrap;border-top:1px solid #30384d;margin-top:28px;padding-top:22px}
-.content-contact{min-width:0;max-width:100%}
-.content-contact>span{display:block;font-size:12px;color:#aeb4c4;margin-bottom:8px}
-.content-contact .contact-value{min-height:44px;color:#fff;font-size:14px}
-.content-contact .contact-channel{background:var(--ink-3);border-color:#424b61;color:#f0ad79}
+.cooperation-head{padding:44px 24px 0}
+.cooperation-head h1{margin:10px 0 26px;font-size:clamp(30px,3.3vw,42px);max-width:none}
+.cooperation-offers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;padding-bottom:28px}
+.cooperation-offer{min-width:0}
+.cooperation-offer+ .cooperation-offer{border-left:1px solid #30384d;padding-left:32px}
+.cooperation-offer h2{font-size:22px;line-height:1.35;color:#fff;margin-bottom:10px;overflow-wrap:anywhere}
+.cooperation-offer p{max-width:520px;font-size:15px;line-height:1.65;margin:0}
+.cooperation-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:8px;font-size:13px;font-weight:600;color:#f0ad79}
+.cooperation-link:hover{color:#ffd0a7}
+.content-contacts{border-top:1px solid #30384d;background:rgba(255,255,255,.025);margin:0 -24px;padding:0 24px}
+.content-contacts>.content-wrap{display:flex;align-items:center;justify-content:space-between;gap:8px 20px;flex-wrap:wrap;min-height:64px;padding:10px 0}
+.content-contact{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}
+.content-contact>span{font-size:11px;color:#aeb4c4}
+.content-contact .contact-value{min-height:44px;color:#fff;font-size:13px;gap:6px}
+.content-contact .contact-channel{background:transparent;border-color:transparent;color:#f0ad79}
 .content-contact .contact-channel:hover{background:#283248;border-color:var(--copper)}
+.content-contact--email>i{font-size:16px;color:#aeb4c4}
 .content-body{padding:38px 24px 80px;min-height:360px}
 .content-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
 .content-filters button{font:600 13px var(--body);padding:10px 16px;background:transparent;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--muted)}
@@ -57,3 +68,5 @@
 @media(max-width:960px){.content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.services-entry{grid-template-columns:1fr}.content-head{padding-top:52px}}
 @media(max-width:620px){.content-grid{grid-template-columns:1fr}.content-head{padding:40px 20px}.content-body{padding:28px 20px 60px}.photo-dialog{padding:12px}.photo-dialog img{height:60vh}.photo-bar{flex-wrap:wrap}.rate-amount{font-size:27px}.nav-in{gap:12px;padding:0 20px}.nav-in>.btn-sm{display:none}.lang a{padding:5px 8px}.brand-lock{gap:8px}}
 @media(max-width:380px){.nav-in{gap:8px;padding:0 12px}.nav .logo-tile{width:32px;height:32px}.nav .brand-lock .word{font-size:14px;letter-spacing:.14em}.nav .brand-lock .word small{display:none}.nav .lang{flex:0 0 auto}.nav .lang a{padding:5px 6px}.nav .spacer{display:none}}
+@media(max-width:960px){.cooperation-head{padding-top:36px}.cooperation-offers{gap:24px}.cooperation-offer+ .cooperation-offer{padding-left:24px}.content-contact>span{font-size:10px}.content-contact--email{order:3}}
+@media(max-width:620px){.cooperation-head{padding:32px 20px 0}.cooperation-head h1{margin-bottom:24px}.cooperation-offers{grid-template-columns:1fr;gap:18px;padding-bottom:22px}.cooperation-offer+ .cooperation-offer{border-left:0;border-top:1px solid #30384d;padding:20px 0 0}.cooperation-offer h2{font-size:21px}.content-contacts{margin:0 -20px;padding:0 20px}.content-contacts>.content-wrap{gap:0;padding:6px 0}.content-contact{width:100%;justify-content:space-between;flex-wrap:wrap;gap:0 8px}.content-contact>span{display:block;max-width:45%;font-size:10px}.content-contact--email{justify-content:flex-start;gap:8px}.content-contact .contact-value{font-size:12px}}
