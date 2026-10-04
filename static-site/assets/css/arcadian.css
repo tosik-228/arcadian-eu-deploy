@@ -322,6 +322,12 @@ section.products{padding-top:56px}
 .c-fact .ic i{font-size:15px;color:var(--copper-deep);line-height:1}
 .c-fact b{font-size:13.5px;display:block}
 .c-fact small{color:var(--muted);font-size:12.5px}
+.c-fact>div{min-width:0}
+.contact-value{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.contact-value>a:not(.contact-channel),.contact-value b>a{overflow-wrap:anywhere}
+.contact-channel{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;min-height:44px;border:1px solid var(--copper-line);border-radius:10px;background:var(--copper-soft);color:var(--copper-deep)}
+.contact-channel i{font-size:20px;line-height:1}
+.contact-channel:hover{border-color:var(--copper);background:var(--copper-line)}
 .form-card{padding:26px}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .f-full{margin-bottom:14px}
@@ -411,7 +417,8 @@ footer.site-footer{background:var(--ink);color:#8b93a8;padding:54px 24px 34px}
    RESPONSIVE
    ============================================================ */
 @media (max-width:960px){
-  .hero-in,.prod-grid,.about-grid,.contact-grid{grid-template-columns:1fr}
+  .hero-in,.prod-grid,.about-grid,.contact-grid{grid-template-columns:minmax(0,1fr)}
+  .hero-in>*,.contact-grid>*{min-width:0}
   .svc-grid,.team-grid{grid-template-columns:1fr 1fr}
   .gallery-grid{grid-template-columns:1fr}
   section.lt{padding:64px 20px}
@@ -423,6 +430,7 @@ footer.site-footer{background:var(--ink);color:#8b93a8;padding:54px 24px 34px}
   .live-badge{display:none} /* its absolute anchor makes no sense once the layers stack */
 }
 @media (max-width:620px){
-  .svc-grid,.team-grid,.f-row,.hero-projects{grid-template-columns:1fr}
+  .svc-grid,.team-grid,.f-row,.hero-projects{grid-template-columns:minmax(0,1fr)}
+  .f-row>*{min-width:0}
   .hero-stats .st{padding-right:20px;margin-right:20px}
 }

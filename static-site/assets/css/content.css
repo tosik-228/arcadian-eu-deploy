@@ -1,7 +1,13 @@
 .content-head{padding:72px 24px 52px;background:var(--ink);color:#aeb4c4}
 .content-wrap{max-width:1180px;margin:0 auto}
-.content-head h1{color:#fff;font-size:clamp(30px,4vw,48px);max-width:780px;margin:14px 0 18px}
+.content-head h1{color:#fff;font-size:clamp(30px,4vw,48px);max-width:780px;margin:14px 0 18px;overflow-wrap:anywhere;hyphens:auto}
 .content-head p{max-width:670px;font-size:16px;line-height:1.7}
+.content-contacts{display:flex;align-items:flex-start;gap:18px 32px;flex-wrap:wrap;border-top:1px solid #30384d;margin-top:28px;padding-top:22px}
+.content-contact{min-width:0;max-width:100%}
+.content-contact>span{display:block;font-size:12px;color:#aeb4c4;margin-bottom:8px}
+.content-contact .contact-value{min-height:44px;color:#fff;font-size:14px}
+.content-contact .contact-channel{background:var(--ink-3);border-color:#424b61;color:#f0ad79}
+.content-contact .contact-channel:hover{background:#283248;border-color:var(--copper)}
 .content-body{padding:38px 24px 80px;min-height:360px}
 .content-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
 .content-filters button{font:600 13px var(--body);padding:10px 16px;background:transparent;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--muted)}
@@ -50,3 +56,4 @@
 @media(max-width:620px){.document-sections{grid-template-columns:1fr}.document-sections>a{padding:20px}}
 @media(max-width:960px){.content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.services-entry{grid-template-columns:1fr}.content-head{padding-top:52px}}
 @media(max-width:620px){.content-grid{grid-template-columns:1fr}.content-head{padding:40px 20px}.content-body{padding:28px 20px 60px}.photo-dialog{padding:12px}.photo-dialog img{height:60vh}.photo-bar{flex-wrap:wrap}.rate-amount{font-size:27px}.nav-in{gap:12px;padding:0 20px}.nav-in>.btn-sm{display:none}.lang a{padding:5px 8px}.brand-lock{gap:8px}}
+@media(max-width:380px){.nav-in{gap:8px;padding:0 12px}.nav .logo-tile{width:32px;height:32px}.nav .brand-lock .word{font-size:14px;letter-spacing:.14em}.nav .brand-lock .word small{display:none}.nav .lang{flex:0 0 auto}.nav .lang a{padding:5px 6px}.nav .spacer{display:none}}

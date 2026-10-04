@@ -25,7 +25,7 @@
   <meta name="twitter:title" content="ARCADIAN — Elektrotechniek, installatie &amp; werfsoftware">
   <meta name="twitter:description" content="Elektrotechnisch ontwerp, installatie en documentatie. Werfvolt is een product van Arcadian.">
   <meta name="twitter:image" content="https://arcadian-eu.com/assets/img/og-cover.jpg">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"ARCADIAN","legalName":"ARCADIAN Sp. z o.o.","url":"https://arcadian-eu.com/","logo":"https://arcadian-eu.com/assets/img/about/arcadian-logo.png","email":"info@arcadian-eu.com","vatID":"PL1133202795","address":{"@type":"PostalAddress","streetAddress":"ul. Ostrobramska 101/4","addressLocality":"Warsaw","addressCountry":"PL"},"brand":{"@type":"Brand","name":"Werfvolt"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"ARCADIAN","legalName":"ARCADIAN Sp. z o.o.","url":"https://arcadian-eu.com/","logo":"https://arcadian-eu.com/assets/img/about/arcadian-logo.png","email":"info@arcadian-eu.com","vatID":"PL1133202795","address":{"@type":"PostalAddress","streetAddress":"ul. Ostrobramska 101/4","addressLocality":"Warsaw","addressCountry":"PL"},"brand":{"@type":"Brand","name":"Werfvolt"},"telephone":"+32466495409","contactPoint":[{"@type":"ContactPoint","telephone":"+48734472003","contactType":"Corporate office in Poland"}]}</script>
   <!-- Materialize the CSRF token here in <head>, before the body streams past the servlet
        response buffer. Otherwise th:action on the contact form (far down the page) would try to
        create the session after the response is already committed and abort the render. -->
@@ -36,9 +36,9 @@
 
   <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
 
-  <link href="/assets/css/arcadian.css?v=stars-v2-20260913" rel="stylesheet">
+  <link href="/assets/css/arcadian.css?v=contacts-20261005" rel="stylesheet">
   <link href="/assets/css/legal-footer.css?v=ae92cf41a42ff6243383db607a632ca00095facf" rel="stylesheet">
-  <link href="/assets/css/content.css?v=cms-v2" rel="stylesheet">
+  <link href="/assets/css/content.css?v=contacts-20261005" rel="stylesheet">
 </head>
 
 <body class="index-page">
@@ -268,16 +268,23 @@
           <span class="eyebrow">Start je project</span>
           <h2>Begin met een tekening, een werfadres — of allebei</h2>
           <p>Beschrijf de scope, locatie en fase van je project. We antwoorden doorgaans binnen 24 uur op werkdagen.</p>
+          <!-- site-contacts:start -->
           <div class="c-fact">
-            <span class="ic"><i class="bi bi-envelope"></i></span>
-            <div><b>info@arcadian-eu.com</b>
+            <span class="ic"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+            <div><div class="contact-value"><b><a href="mailto:info@arcadian-eu.com">info@arcadian-eu.com</a></b><a class="contact-channel" href="https://wa.me/32466495409" target="_blank" rel="noopener noreferrer" aria-label="Open WhatsApp-chat: +32 466 495 409" title="WhatsApp · +32 466 495 409"><i class="bi bi-whatsapp" aria-hidden="true"></i></a></div>
               <small>Projecten, onderaanneming en vacatures</small></div>
           </div>
           <div class="c-fact">
-            <span class="ic"><i class="bi bi-telephone"></i></span>
-            <div><b>+49 157 5624 0180</b>
-              <small>Ma–Vr, 08:00–18:00 CET</small></div>
+            <span class="ic"><i class="bi bi-telephone" aria-hidden="true"></i></span>
+            <div><b><a href="tel:+32466495409">+32&nbsp;466&nbsp;495&nbsp;409</a></b>
+              <small>Hoofdcontact · Ma–Vr, 08:00–18:00 CET</small></div>
           </div>
+          <div class="c-fact">
+            <span class="ic"><i class="bi bi-building" aria-hidden="true"></i></span>
+            <div><div class="contact-value"><b><a href="tel:+48734472003">+48&nbsp;734&nbsp;472&nbsp;003</a></b><a class="contact-channel" href="https://wa.me/48734472003" target="_blank" rel="noopener noreferrer" aria-label="Open WhatsApp-chat: +48 734 472 003" title="WhatsApp · +48 734 472 003"><i class="bi bi-whatsapp" aria-hidden="true"></i></a></div>
+              <small>Bedrijfsnummer · Polen</small></div>
+          </div>
+          <!-- site-contacts:end -->
           <div class="c-fact">
             <span class="ic"><i class="bi bi-lightning-charge"></i></span>
             <div><b>Werfvolt-support</b>
@@ -360,7 +367,7 @@
 
             <div class="loading">Versturen</div>
             <div class="error-message"></div>
-            <div class="sent-message">Je bericht is aangekomen bij ARCADIAN. Anastasiya of een projectmanager neemt binnenkort contact op via +49 157 5624 0180.</div>
+            <div class="sent-message">Je bericht is aangekomen bij ARCADIAN. Ons team neemt binnenkort contact op via +32 466 495 409.</div>
 
             <button type="submit" class="btn btn-copper" style="width:100%" disabled aria-disabled="true">
               Verstuur bericht&nbsp;→</button>
@@ -419,7 +426,6 @@
             <div class="tm-links">
               <a href="https://www.linkedin.com/in/anastasiyaplekhava/" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-linkedin"></i> LinkedIn</a>
-              <span class="tm-contact">+4915756240180</span>
             </div>
           </div>
         </div>
@@ -621,7 +627,7 @@
 
   <script src="/assets/js/arcadian.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
-  <script src="/assets/js/contact-form.js?v=turnstile-20260824"></script>
+  <script src="/assets/js/contact-form.js?v=contacts-20261005"></script>
 
 
   <script src="/assets/js/cookie-preferences.js?v=ae92cf41a42ff6243383db607a632ca00095facf"></script>
