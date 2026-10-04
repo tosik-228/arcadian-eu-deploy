@@ -11,7 +11,7 @@ from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
-from content.models import Project, ProjectPhoto, Rate
+from content.models import Project, ProjectPhoto, Rate, RateDocument
 
 
 class Command(BaseCommand):
@@ -24,7 +24,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not settings.DATABASES['default']['NAME'].startswith('restore_'):
             raise CommandError('Only an isolated restore_* database is allowed.')
-        if get_user_model().objects.exists() or Project.objects.exists() or Rate.objects.exists() or ProjectPhoto.history.exists():
+        models = [Project, ProjectPhoto, Rate, RateDocument]
+        if get_user_model().objects.exists() or any(model.objects.exists() or model.history.exists() for model in models):
             raise CommandError('Restore target must be empty. Existing data will never be overwritten.')
         with tempfile.TemporaryDirectory(prefix='arcadian-restore-') as scratch:
             path = Path(scratch) / 'content.zip'
@@ -38,7 +39,7 @@ class Command(BaseCommand):
                     raise CommandError('Export checksum mismatch.')
                 # Validate every file before writing anything to the target.
                 for key, expected in manifest['files'].items():
-                    if not key.startswith('photos/') or '..' in PurePosixPath(key).parts or PurePosixPath(key).is_absolute():
+                    if not key.startswith(('photos/', 'documents/')) or '..' in PurePosixPath(key).parts or PurePosixPath(key).is_absolute():
                         raise CommandError('Invalid media path.')
                     digest = hashlib.sha256()
                     count = 0

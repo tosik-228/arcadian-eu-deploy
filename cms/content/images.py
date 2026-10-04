@@ -4,15 +4,15 @@ import os
 import tempfile
 import uuid
 import warnings
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageCms, ImageOps, UnidentifiedImageError
 from pillow_heif import register_heif_opener
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 
 register_heif_opener()
-Image.MAX_IMAGE_PIXELS = 24_000_000
-MAX_BYTES = 20 * 1024 * 1024
+Image.MAX_IMAGE_PIXELS = 50_000_000
+MAX_BYTES = 50 * 1024 * 1024
 
 
 def prepare_image(upload):
@@ -26,33 +26,49 @@ def prepare_image(upload):
 
 def _prepare_image(upload):
     if upload.size > MAX_BYTES:
-        raise ValidationError('Одна фотография — не более 20 МБ.')
+        raise ValidationError('Одна фотография — не более 50 МБ.')
     try:
         with warnings.catch_warnings():
             warnings.simplefilter('error', Image.DecompressionBombWarning)
             upload.seek(0)
             with Image.open(upload) as source:
-                if source.format not in {'JPEG', 'PNG', 'WEBP', 'AVIF', 'HEIF'} or getattr(source, 'is_animated', False):
-                    raise ValidationError('Принимаются фотографии JPEG, PNG, WebP, AVIF и HEIC; без анимации.')
-                if max(source.size) > 8192:
-                    raise ValidationError('Размер фотографии — не более 8192 пикселей по стороне.')
+                # MPO is a still-photo JPEG container (often a primary photo
+                # plus an auxiliary image). Pillow calls it "animated" too.
+                still_containers = {'MPO', 'HEIF', 'TIFF'}
+                if source.format not in {'JPEG', 'PNG', 'WEBP', 'AVIF', 'BMP'} | still_containers:
+                    raise ValidationError(f'Формат {source.format or "не определён"} не поддерживается. Выберите фотографию JPEG, HEIC, PNG, TIFF, WebP или AVIF.')
+                if getattr(source, 'is_animated', False) and source.format not in still_containers:
+                    raise ValidationError('Этот файл содержит анимацию. Выберите неподвижную фотографию.')
+                if max(source.size) > 16384:
+                    raise ValidationError('Размер фотографии превышает 16384 пикселя по стороне.')
                 source.load()
-                image = ImageOps.exif_transpose(source).convert('RGB')
-                image.thumbnail((2400, 2400), Image.Resampling.LANCZOS)
-                # A new image has no source EXIF, GPS, XMP or filename metadata.
-                clean = Image.new('RGB', image.size)
-                clean.paste(image)
+                ImageOps.exif_transpose(source, in_place=True)
+                profile = source.info.get('icc_profile')
+                if profile:
+                    try:
+                        clean = ImageCms.profileToProfile(source, ImageCms.ImageCmsProfile(BytesIO(profile)),
+                            ImageCms.createProfile('sRGB'), outputMode='RGB')
+                    except (ImageCms.PyCMSError, ValueError, OSError):
+                        clean = source.convert('RGB')
+                else:
+                    clean = source.convert('RGB')
+                # Preserve all pixels in the viewing image. Clear metadata
+                # explicitly; only the two previews are resized/cropped.
+                clean.info.clear()
+                # The independent RGB copy no longer needs the decoder's full
+                # source buffer. Release it before WebP allocates its buffers.
+                source.close()
                 variants = {}
                 for name, size in [('large', None), ('card', (960, 720)), ('small', (480, 360))]:
                     variant = clean if size is None else ImageOps.fit(clean, size, method=Image.Resampling.LANCZOS)
                     buffer = BytesIO()
-                    variant.save(buffer, format='WEBP', quality=86 if name == 'large' else 82, method=4)
+                    variant.save(buffer, format='WEBP', quality=95 if name == 'large' else 82, method=4)
                     variants[name] = buffer.getvalue()
                 return {'width': clean.width, 'height': clean.height, 'variants': variants}
     except ValidationError:
         raise
     except (Image.DecompressionBombError, Image.DecompressionBombWarning):
-        raise ValidationError('Фотография превышает 24 млн пикселей. Уменьшите размер перед загрузкой.')
+        raise ValidationError('Фотография превышает 50 млн пикселей.')
     except (UnidentifiedImageError, OSError, ValueError):
         raise ValidationError('Файл повреждён или не является допустимой фотографией.')
 

@@ -19,6 +19,13 @@ class Category(models.TextChoices):
     ELECTRICAL = 'electrical', 'Электрика'
 
 
+class DocumentCategory(models.TextChoices):
+    ELECTRICAL = 'electrical', 'Электрики'
+    FACADES = 'facades', 'Фасадчики'
+    FINISHING = 'finishing', 'Отделочники'
+    SUBCONTRACTORS = 'subcontractors', 'Субподрядчики — бригады'
+
+
 class Status(models.TextChoices):
     DRAFT = 'draft', 'Черновик'
     PUBLISHED = 'published', 'Опубликовано'
@@ -173,3 +180,38 @@ class Rate(ContentRecord):
             errors['basis'] = 'Для штата — зарплата брутто; для специалиста или бригады — счёт без НДС.'
         if errors:
             raise ValidationError(errors)
+
+
+class RateDocument(ContentRecord):
+    category = models.CharField('Раздел сайта', max_length=20, choices=DocumentCategory.choices)
+    visibility = models.CharField('Видимость', max_length=10, choices=Rate.Visibility.choices,
+        default=Rate.Visibility.PUBLIC, help_text='Публичный PDF появится на сайте после выбора «Опубликовано». Внутренний PDF доступен только редактору.')
+    effective_date = models.DateField('Действует с', null=True, blank=True)
+    file_key = models.CharField(max_length=250, blank=True, editable=False)
+    file_sha256 = models.CharField(max_length=64, blank=True, editable=False)
+    file_bytes = models.PositiveIntegerField(default=0, editable=False)
+    page_count = models.PositiveSmallIntegerField(default=0, editable=False)
+    history = HistoricalRecords()
+
+    class Meta(ContentRecord.Meta):
+        verbose_name = 'PDF с расценками'
+        verbose_name_plural = 'Расценки'
+        indexes = [models.Index(fields=['status', 'visibility', 'category', 'sort'])]
+        constraints = [models.CheckConstraint(
+            condition=~Q(status='published') | (~Q(file_key='') & Q(file_bytes__gt=0, page_count__gt=0)),
+            name='rate_document_published_file')]
+
+    def clean(self):
+        # The description is optional: the PDF contains the actual terms.
+        models.Model.clean(self)
+        if self.status == Status.PUBLISHED:
+            if not self.title.strip():
+                raise ValidationError({'title': 'Для публикации укажите название.'})
+            if not self.file_key and not getattr(self, '_allow_pending_document', False):
+                raise ValidationError('Для публикации загрузите PDF с расценками.')
+
+    def validate_constraints(self, exclude=None):
+        # Admin validates before save_model writes a newly uploaded PDF.
+        if getattr(self, '_allow_pending_document', False):
+            return
+        super().validate_constraints(exclude)

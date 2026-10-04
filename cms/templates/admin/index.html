@@ -30,12 +30,12 @@
       {% if model.object_name == 'Project' %}
         <p>Фотографии, описания и порядок работ в галерее.</p>
         <div class="arcadian-card-tags"><span>Отделка</span><span>Фасады</span><span>Электрика</span></div>
-      {% elif model.object_name == 'Rate' %}
-        <p>Суммы, условия и видимость расценок на сайте.</p>
-        <div class="arcadian-card-tags"><span>Штат</span><span>Субподрядчики</span><span>Бригады</span></div>
+      {% elif model.object_name == 'RateDocument' %}
+        <p>Загрузите PDF для просмотра и скачивания в выбранном разделе сайта.</p>
+        <div class="arcadian-card-tags"><span>Электрики</span><span>Фасадчики</span><span>Отделочники</span><span>Бригады</span></div>
       {% endif %}
       <div class="arcadian-card-actions">
-        {% if model.add_url %}<a class="arcadian-button arcadian-button-primary" href="{{ model.add_url }}">{% if model.object_name == 'Project' %}Добавить работу{% elif model.object_name == 'Rate' %}Добавить расценку{% else %}{% translate 'Add' %}{% endif %}<span aria-hidden="true">+</span></a>{% endif %}
+        {% if model.add_url %}<a class="arcadian-button arcadian-button-primary" href="{{ model.add_url }}">{% if model.object_name == 'Project' %}Создать альбом{% elif model.object_name == 'RateDocument' %}Загрузить PDF{% else %}{% translate 'Add' %}{% endif %}<span aria-hidden="true">+</span></a>{% endif %}
         {% if model.admin_url %}<a class="arcadian-button arcadian-button-secondary" href="{{ model.admin_url }}">Открыть список <span aria-hidden="true">→</span></a>{% endif %}
       </div>
     </section>
