@@ -15,6 +15,16 @@ from datetime import datetime, timezone
 configuration = json.loads(Path(sys.argv[1]).read_text())
 root = Path(configuration['destination'])
 root.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+
+def file_sha256(file):
+    """Use the system Python on macOS, including its bundled Python 3.9."""
+    digest = hashlib.sha256()
+    while chunk := file.read(1024 * 1024):
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
 with (root / '.pull.lock').open('a') as lock:
     try:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -49,7 +59,7 @@ with (root / '.pull.lock').open('a') as lock:
         already_verified = target.exists() and target.stat().st_size == record['bytes']
         if already_verified:
             with target.open('rb') as file:
-                already_verified = hashlib.file_digest(file, 'sha256').hexdigest() == record['sha256']
+                already_verified = file_sha256(file) == record['sha256']
         if not already_verified and shutil.disk_usage(root).free < record['bytes'] + 1024**3:
             raise RuntimeError('The Mac needs at least 1 GiB free after the backup transfer.')
         process.stdin.write(b'0' if already_verified else b'1')
