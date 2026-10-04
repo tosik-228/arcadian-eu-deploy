@@ -144,7 +144,7 @@
           sitekey: sitekey,
           action: TURNSTILE_ACTION,
           appearance: "always",
-          size: "flexible",
+          size: turnstileContainer.clientWidth < 300 ? "compact" : "flexible",
           retry: "auto",
           "response-field": true,
           "response-field-name": TURNSTILE_RESPONSE_FIELD,

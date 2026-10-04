@@ -35,6 +35,10 @@ an unsafe format.
 
 ## Contact form
 
+Public telephone numbers and WhatsApp destinations are defined in
+`cms/site-contacts.mjs`. After changing them, run `node cms/generate-pages.mjs`
+to update the EN, PL and NL homepages, confirmations and PDF page contact rows.
+
 The form posts multipart directly to
 `https://werfvolt.be/api/public/leads/form` — CORS-limited to
 arcadian-eu.com, rate-limited and honeypotted on the werfvolt side, where it
