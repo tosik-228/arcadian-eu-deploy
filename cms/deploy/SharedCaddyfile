@@ -1,0 +1,4 @@
+# Werfvolt owns its existing live/maintenance file; Arcadian owns its own host.
+# A Werfvolt maintenance restart reads both through this stable wrapper.
+import /etc/caddy/Caddyfile
+import /etc/arcadian-ingress/ArcadianCaddyfile

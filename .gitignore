@@ -1,1 +1,11 @@
 /static-site/dist/
+/cms/.env
+/cms/.state/
+/cms/.backups/
+/node_modules/
+/cms/.venv/
+/cms/.media/
+/cms/.static/
+__pycache__/
+*.pyc
+/cms/.restore*/

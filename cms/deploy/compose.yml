@@ -1,0 +1,109 @@
+name: arcadian-content
+
+x-logging: &logging
+  driver: json-file
+  options: {max-size: 10m, max-file: '3'}
+
+x-cms: &cms
+  image: ${CMS_IMAGE:?Set the accepted immutable image tag}
+  user: '10001:10001'
+  env_file: [.env.runtime]
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  pids_limit: 128
+  tmpfs: ['/tmp:rw,nosuid,noexec,size=256m,uid=10001,gid=10001,mode=700']
+  volumes:
+    - database_socket:/run/arcadian-postgres:ro
+    - ${CONTENT_ROOT:-/opt/arcadian-content}/media:/data/media
+  logging: *logging
+
+services:
+  database:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    restart: unless-stopped
+    env_file: [.env.database]
+    environment:
+      PGHOST: /var/run/postgresql
+    entrypoint: [/bin/sh, -ec, 'chown postgres:postgres /var/run/postgresql; chmod 0755 /var/run/postgresql; exec /usr/local/bin/docker-entrypoint.sh "$$@"', arcadian-postgres]
+    command:
+      - postgres
+      - -c
+      - listen_addresses=
+      - -c
+      - unix_socket_directories=/var/run/postgresql
+      - -c
+      - hba_file=/etc/postgresql/arcadian-pg_hba.conf
+      - -c
+      - max_connections=30
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - work_mem=4MB
+    volumes:
+      - database_data:/var/lib/postgresql/data
+      - database_socket:/var/run/postgresql
+      - ./pg_hba.conf:/etc/postgresql/arcadian-pg_hba.conf:ro
+    networks: [database_private]
+    healthcheck:
+      test: [CMD-SHELL, 'PGPASSWORD="$$POSTGRES_PASSWORD" psql -h /var/run/postgresql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -tAc "SELECT 1" >/dev/null']
+      interval: 5s
+      timeout: 3s
+      retries: 24
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    security_opt: ['no-new-privileges:true']
+    logging: *logging
+
+  cms:
+    <<: *cms
+    restart: unless-stopped
+    depends_on:
+      database: {condition: service_healthy}
+    networks: [frontend]
+    expose: ['8055']
+    mem_limit: 1024m
+    cpus: 0.75
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8055/healthz/", timeout=5).read()']
+      interval: 15s
+      timeout: 7s
+      retries: 4
+      start_period: 30s
+
+  migrate:
+    <<: *cms
+    profiles: [operator]
+    env_file: [.env.runtime, .env.migration]
+    command: [python, manage.py, migrate, --noinput]
+    networks: [database_private]
+    mem_limit: 384m
+    cpus: 0.5
+
+  backup:
+    <<: *cms
+    profiles: [operator]
+    env_file: [.env.runtime, .env.backup]
+    command: [python, manage.py, content_backup, --output, /data/backups]
+    tmpfs: []
+    volumes:
+      - database_socket:/run/arcadian-postgres:ro
+      - ${CONTENT_ROOT:-/opt/arcadian-content}/media:/data/media:ro
+      - ${CONTENT_ROOT:-/opt/arcadian-content}/backups:/data/backups
+      - ${CONTENT_ROOT:-/opt/arcadian-content}/backup-scratch:/tmp
+    networks: [database_private]
+    mem_limit: 384m
+    cpus: 0.5
+
+volumes:
+  database_data:
+  database_socket:
+
+networks:
+  database_private: {internal: true}
+  frontend:
+    name: arcadian-content_frontend
+    ipam:
+      config:
+        - subnet: 172.30.77.0/28

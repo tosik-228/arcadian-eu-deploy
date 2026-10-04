@@ -41,6 +41,10 @@ static_sites:
         scope: BUILD_TIME
         type: GENERAL
         value: __TURNSTILE_SITEKEY__
+      - key: CMS_PUBLIC_URL
+        scope: BUILD_TIME
+        type: GENERAL
+        value: __CMS_PUBLIC_URL__
     index_document: index.html
     # No catchall: unknown paths must be real 404s (with catchall every URL answered
     # 200 with the homepage — soft-404 duplicates for search engines).

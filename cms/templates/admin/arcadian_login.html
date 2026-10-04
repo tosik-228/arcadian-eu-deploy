@@ -1,0 +1,15 @@
+{% extends "admin/login.html" %}
+{% block content %}
+{% if form.errors %}<p class="errornote">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</p>{% endif %}
+<div id="content-main">
+<p>Работы и расценки</p>
+<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+<div class="form-row">{{ form.username.errors }}<label for="id_username">Логин</label>{{ form.username }}</div>
+<div class="form-row">{{ form.password.errors }}<label for="id_password">Пароль</label>{{ form.password }}</div>
+{% if form.get_user %}<div class="form-row">{{ form.otp_device.errors }}<label for="id_otp_device">Способ подтверждения</label>{{ form.otp_device }}</div>{% endif %}
+<div class="form-row">{{ form.otp_token.errors }}<label for="id_otp_token">Код подтверждения</label><input id="id_otp_token" name="otp_token" type="text" autocomplete="one-time-code" maxlength="32" required></div>
+<p class="help">Шесть цифр из приложения-аутентификатора или одноразовый резервный код.</p>
+<input type="hidden" name="next" value="{{ next }}">
+<div class="submit-row"><input type="submit" value="Войти"></div>
+</form></div>
+{% endblock %}

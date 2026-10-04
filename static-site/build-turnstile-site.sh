@@ -3,6 +3,7 @@ set -eu
 
 PLACEHOLDER="__TURNSTILE_SITEKEY__"
 SITEKEY="${TURNSTILE_SITEKEY:-}"
+CMS_URL="${CMS_PUBLIC_URL:-}"
 SITE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 OUTPUT_DIR="$SITE_DIR/dist"
 TEMP_DIR=""
@@ -21,6 +22,11 @@ if [ -z "$SITEKEY" ] || [ "$SITEKEY" = "$PLACEHOLDER" ]; then
 fi
 if ! printf '%s' "$SITEKEY" | grep -Eq '^[A-Za-z0-9_-]{10,100}$'; then
   echo "TURNSTILE_SITEKEY has an invalid format." >&2
+  exit 1
+fi
+
+if ! printf '%s' "$CMS_URL" | grep -Eq '^https://[A-Za-z0-9.-]+(:[0-9]{2,5})?$'; then
+  echo 'CMS_PUBLIC_URL must be an HTTPS origin; refusing to publish disconnected gallery pages.' >&2
   exit 1
 fi
 
@@ -59,6 +65,8 @@ for relative_page in index.html pl/index.html nl/index.html; do
   sed "s|$PLACEHOLDER|$SITEKEY|g" "$output_page" > "$output_page.tmp"
   mv "$output_page.tmp" "$output_page"
 done
+
+printf 'window.ARCADIAN_CMS_URL = "%s";\n' "$CMS_URL" > "$TEMP_DIR/assets/js/content-config.js"
 
 if grep -R -F -q "$PLACEHOLDER" "$TEMP_DIR"; then
   echo "Unresolved Turnstile sitekey placeholder remains in build output." >&2
