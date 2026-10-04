@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Arcadian database and media backup
+
+[Timer]
+OnCalendar=*-*-* 02:15:00 UTC
+Persistent=true
+RandomizedDelaySec=5min
+Unit=arcadian-content-backup.service
+
+[Install]
+WantedBy=timers.target

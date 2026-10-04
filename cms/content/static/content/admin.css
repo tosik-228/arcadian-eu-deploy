@@ -1,0 +1,19 @@
+:root, html[data-theme="light"] {
+  --primary: #233746; --secondary: #182b3a; --accent: #e9d4b9;
+  --header-bg: #182b3a; --header-color: #e9d4b9;
+  --link-fg: #725132; --link-selected-fg: #182b3a;
+  --button-bg: #233746; --button-hover-bg: #122635;
+  --default-button-bg: #725132; --default-button-hover-bg: #583d26;
+}
+#site-name {letter-spacing: .18em; font-size: 20px; font-weight: 600;}
+.login #content {padding-top: 20px;}
+.login .form-row label {width: auto; margin-bottom: 6px;}
+.login .form-row input {box-sizing: border-box; width: 100%; min-height: 42px;}
+.login .help {line-height: 1.6; margin: 18px 0;}
+.form-row textarea {max-width: 100%; box-sizing: border-box;}
+.inline-group .tabular td img {object-fit: cover; border-radius: 6px;}
+@media(max-width: 767px) {
+  input, textarea, select {font-size: 16px !important;}
+  .submit-row input {min-height: 44px;}
+  .inline-group {overflow-x: auto;}
+}

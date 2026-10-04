@@ -1,0 +1,17 @@
+.env
+.env.*
+**/.env
+**/.env.*
+.venv
+.state
+.media
+.static
+.backups
+__pycache__
+*.pyc
+preview.mjs
+generate-pages.mjs
+browser-acceptance.mjs
+verify-backup.py
+verify-droplet.py
+deploy

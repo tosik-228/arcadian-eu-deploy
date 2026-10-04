@@ -1,0 +1,12 @@
+[Unit]
+Description=Encrypted Arcadian content backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/arcadian-content
+ExecStart=/opt/arcadian-content/backup.sh
+UMask=0077
+Nice=10
+TimeoutStartSec=30min

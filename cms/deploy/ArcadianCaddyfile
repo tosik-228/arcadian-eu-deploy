@@ -1,0 +1,20 @@
+cms.arcadian-eu.com {
+    encode zstd gzip
+    request_body {
+        max_size 70MB
+    }
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy same-origin
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        -Server
+    }
+    reverse_proxy cms:8055 {
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 120s
+        }
+        header_up X-Forwarded-Proto https
+        header_up X-Arcadian-Client-IP {remote_host}
+    }
+}

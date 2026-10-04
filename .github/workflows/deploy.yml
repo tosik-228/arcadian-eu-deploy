@@ -25,25 +25,64 @@ jobs:
           node-version: "22"
       - name: Check contact-form JavaScript
         run: node --check static-site/assets/js/contact-form.js
+      - run: npm ci --ignore-scripts
+      - name: Check gallery JavaScript
+        run: node --check static-site/assets/js/content.js
       - name: Build static site with Turnstile configuration
         # Deliberately not a Cloudflare test or production key: this only
         # exercises deterministic config injection and fail-closed checks.
         env:
           TURNSTILE_SITEKEY: ci_only_invalid_sitekey_20260824
+          CMS_PUBLIC_URL: https://cms.arcadian-eu.com
         run: sh static-site/build-turnstile-site.sh
       - name: Validate HTML (all locales)
-        run: npx --yes html-validate "static-site/dist/**/*.html"
+        run: npm run check:html
       - name: Check links
         # Serves the built site locally and follows every internal link, so a page
         # renamed in one locale but not the others fails here, not in prod.
         # Social/maps hosts block bots and are skipped to avoid false alarms.
-        run: >
-          npx --yes linkinator static-site/dist --recurse --verbosity error
-          --skip "linkedin\.com|instagram\.com|facebook\.com|wa\.me|maps\.google\.|google\.com/maps"
+        run: npm run check:links
+
+  cms:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_DB: arcadian_content
+          POSTGRES_USER: arcadian
+          POSTGRES_PASSWORD: acceptance-only-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U arcadian -d arcadian_content"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DJANGO_ENV: local
+      CMS_SECRET: acceptance-only-not-a-production-secret-key-20261004
+      CMS_URL: http://127.0.0.1:8057
+      CMS_ALLOWED_HOSTS: 127.0.0.1,localhost
+      SITE_ORIGINS: http://127.0.0.1:8173,http://localhost:8173
+      DB_NAME: arcadian_content
+      DB_USER: arcadian
+      DB_PASSWORD: acceptance-only-ci-password
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: cms/requirements.txt
+      - run: pip install --require-hashes -r cms/requirements.txt
+      - run: python cms/manage.py makemigrations --check --dry-run
+      - run: python cms/manage.py test content --noinput
+      - name: Build unprivileged CMS image
+        run: docker build --tag arcadian-cms:ci cms
 
   deploy:
     if: github.event_name != 'pull_request'
-    needs: checks
+    needs: [checks, cms]
     runs-on: ubuntu-latest
     env:
       DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
@@ -54,6 +93,17 @@ jobs:
           echo "::error::DIGITALOCEAN_ACCESS_TOKEN secret is not set. Create a DigitalOcean API token (Apps scope) and add it once under Settings → Secrets → Actions, then re-run this workflow."
           exit 1
       - uses: actions/checkout@v4
+      - name: Require ready CMS and configure public endpoint
+        env:
+          CMS_PUBLIC_URL: ${{ vars.CMS_PUBLIC_URL }}
+        run: |
+          if [ "$CMS_PUBLIC_URL" != 'https://cms.arcadian-eu.com' ]; then
+            echo '::error::Provision the CMS first, then configure CMS_PUBLIC_URL.'
+            exit 1
+          fi
+          curl --fail --silent --show-error "$CMS_PUBLIC_URL/healthz/" | python3 -c 'import json,sys; assert json.load(sys.stdin)["status"] == "ready"'
+          curl --fail --silent --show-error "$CMS_PUBLIC_URL/api/projects/" | python3 -c 'import json,sys; assert isinstance(json.load(sys.stdin)["data"],list)'
+          sed -i "s|__CMS_PUBLIC_URL__|$CMS_PUBLIC_URL|g" .do/app.yaml
       - name: Require and configure Turnstile sitekey
         env:
           TURNSTILE_SITEKEY: ${{ vars.TURNSTILE_SITEKEY }}

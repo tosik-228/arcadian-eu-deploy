@@ -1,0 +1,14 @@
+# Install as /opt/werfvolt/docker-compose.override.yml.
+# Base Werfvolt compose and both live/maintenance Caddyfiles remain their owners' inputs.
+services:
+  caddy:
+    command: [caddy, run, --config, /etc/arcadian-ingress/SharedCaddyfile, --adapter, caddyfile]
+    volumes:
+      - /opt/arcadian-content/ingress:/etc/arcadian-ingress:ro
+    networks:
+      - arcadian_frontend
+
+networks:
+  arcadian_frontend:
+    name: arcadian-content_frontend
+    external: true

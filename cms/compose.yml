@@ -1,0 +1,23 @@
+name: arcadian-cms
+services:
+  database:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: arcadian_content
+      POSTGRES_USER: arcadian
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Run cms/setup-local.mjs first}
+    ports: ['127.0.0.1:${DB_PORT:-8058}:5432']
+    volumes: ['content_database:/var/lib/postgresql/data']
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U arcadian -d arcadian_content']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 384m
+    security_opt: ['no-new-privileges:true']
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+volumes:
+  content_database:

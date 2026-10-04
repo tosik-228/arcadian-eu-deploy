@@ -1,0 +1,21 @@
+{
+  "name": "arcadian-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "preview": "node cms/preview.mjs",
+    "cms:setup": "node cms/setup-local.mjs",
+    "cms:bootstrap": "cms/.venv/bin/python cms/manage.py bootstrap_editor --output cms/.state",
+    "test:cms": "cms/.venv/bin/python cms/manage.py test content --noinput",
+    "test:browser": "node cms/browser-acceptance.mjs",
+    "check:html": "html-validate 'static-site/dist/**/*.html'",
+    "check:links": "node cms/check-links.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "html-validate": "11.16.2",
+    "linkinator": "8.1.0"
+  }
+}
