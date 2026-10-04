@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from .images import prepare_image
-from .models import Project, ProjectPhoto, Rate, Status
+from .models import Project, ProjectPhoto, Rate, RateDocument, Status
 
 
 class MultipleUpload(forms.ClearableFileInput):
@@ -10,7 +10,7 @@ class MultipleUpload(forms.ClearableFileInput):
 
 
 class PhotographBatch(forms.FileField):
-    widget = MultipleUpload
+    widget = MultipleUpload(attrs={'accept': 'image/*,.heic,.heif,.tif,.tiff'})
 
     def clean(self, data, initial=None):
         if not data:
@@ -20,7 +20,13 @@ class PhotographBatch(forms.FileField):
             raise ValidationError('За один раз загрузите не более 10 фотографий.')
         if sum(value.size for value in values) > 60 * 1024 * 1024:
             raise ValidationError('Суммарный размер одной загрузки — не более 60 МБ. Разделите фотографии на несколько загрузок.')
-        return [prepare_image(super(PhotographBatch, self).clean(value, initial)) for value in values]
+        prepared = []
+        for value in values:
+            try:
+                prepared.append(prepare_image(super(PhotographBatch, self).clean(value, initial)))
+            except ValidationError as error:
+                raise ValidationError([f'{value.name}: {message}' for message in error.messages]) from error
+        return prepared
 
 
 class RevisionForm(forms.ModelForm):
@@ -45,7 +51,7 @@ class RevisionForm(forms.ModelForm):
 
 class ProjectForm(RevisionForm):
     photographs = PhotographBatch(label='Добавить фотографии', required=False,
-        help_text='До 10 файлов и 60 МБ за раз; до 20 МБ и 24 млн пикселей каждый. JPEG, PNG, WebP, AVIF, HEIC. Геометки удаляются автоматически.')
+        help_text='Выберите фото из macOS Photos или файлы JPEG, HEIC/HEIF, PNG, TIFF, WebP, AVIF. Исходное разрешение сохраняется для просмотра; превью уменьшаются автоматически. До 10 файлов и 60 МБ за раз; до 50 МБ и 50 млн пикселей каждый. Геометки удаляются.')
 
     class Meta:
         model = Project
@@ -106,3 +112,25 @@ class RateForm(RevisionForm):
     class Meta:
         model = Rate
         fields = '__all__'
+
+
+class RateDocumentForm(RevisionForm):
+    upload = forms.FileField(label='Загрузить PDF', required=False,
+        help_text='До 25 МБ и 200 страниц. Документ сохраняется целиком для просмотра и скачивания. При замене предыдущая версия остаётся в истории. Без пароля, вложений и интерактивных форм.')
+
+    class Meta:
+        model = RateDocument
+        fields = '__all__'
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('upload'):
+            from .documents import prepare_document
+            try:
+                self.prepared = prepare_document(cleaned['upload'])
+                self.instance._allow_pending_document = True
+            except ValidationError as error:
+                self.add_error('upload', error)
+        elif not self.instance.file_key:
+            self.add_error('upload', 'Добавьте PDF с расценками.')
+        return cleaned

@@ -9,17 +9,17 @@ from django.core.files.storage import default_storage
 from django.db import connection
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_safe
-from .models import Project, ProjectPhoto, Rate, Status, Category
+from .models import Project, ProjectPhoto, Rate, RateDocument, Status, Category, DocumentCategory
 
 PUBLIC_FIELDS = ['id', 'title', 'description', 'title_pl', 'title_nl',
                  'description_pl', 'description_nl', 'category']
 PAGE_SIZE = 12
 
 
-def paginate(request, queryset):
+def paginate(request, queryset, categories=Category.values):
     category = request.GET.get('category', '')
     if category:
-        if category not in Category.values:
+        if category not in categories:
             return None
         queryset = queryset.filter(category=category)
     try:
@@ -59,6 +59,45 @@ def rates(request):
     rows, has_more = result
     names = PUBLIC_FIELDS + ['worker_type', 'amount_from', 'amount_to', 'unit', 'basis', 'own_vehicle', 'own_tools']
     return JsonResponse({'data': [fields(obj, names) for obj in rows], 'has_more': has_more})
+
+
+@require_safe
+def documents(request):
+    result = paginate(request, RateDocument.objects.filter(status=Status.PUBLISHED, visibility=Rate.Visibility.PUBLIC), DocumentCategory.values)
+    if result is None:
+        return JsonResponse({'error': 'Invalid page or category.'}, status=400)
+    rows, has_more = result
+    names = PUBLIC_FIELDS + ['effective_date', 'page_count', 'file_bytes']
+    return JsonResponse({'data': [fields(obj, names) for obj in rows], 'has_more': has_more})
+
+
+@require_safe
+def document(request, document_id):
+    obj = RateDocument.objects.filter(pk=document_id).first()
+    if obj is None or not obj.file_key:
+        raise Http404
+    user = request.user
+    editor = user.is_authenticated and user.is_verified() and user.has_perm('content.view_ratedocument')
+    if 'revision' in request.GET:
+        if not editor:
+            raise Http404
+        try:
+            revision = int(request.GET['revision'])
+        except (ValueError, TypeError):
+            raise Http404
+        obj = obj.history.filter(history_id=revision).first()
+        if obj is None or not obj.file_key:
+            raise Http404
+    if (obj.status != Status.PUBLISHED or obj.visibility != Rate.Visibility.PUBLIC) and not editor:
+        raise Http404
+    try:
+        body = default_storage.open(obj.file_key, 'rb')
+    except FileNotFoundError:
+        raise Http404
+    response = FileResponse(body, content_type='application/pdf',
+        as_attachment=request.GET.get('download') == '1', filename=f'arcadian-{obj.category}-{obj.id}.pdf')
+    response['ETag'] = '"' + obj.file_sha256 + '"'
+    return response
 
 
 @require_safe

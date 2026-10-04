@@ -11,8 +11,9 @@ from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from content.models import Project, ProjectPhoto, Rate, Status
+from content.models import Project, ProjectPhoto, Rate, RateDocument, Status
 from content.images import prepare_image, store_image
+from content.documents import prepare_document, store_document
 
 
 class Command(BaseCommand):
@@ -32,6 +33,7 @@ class Command(BaseCommand):
             data = json.loads(state.read_text())
             data['projects'] += [str(value) for value in Project.history.filter(history_user_id=data['user_id']).values_list('id', flat=True)]
             data['rates'] += [str(value) for value in Rate.history.filter(history_user_id=data['user_id']).values_list('id', flat=True)]
+            data['documents'] = data.get('documents', []) + [str(value) for value in RateDocument.history.filter(history_user_id=data['user_id']).values_list('id', flat=True)]
             for photo in ProjectPhoto.history.filter(project_id__in=data['projects']):
                 data['files'].extend([photo.large, photo.card, photo.small])
             Project.objects.filter(id__in=data['projects']).delete()
@@ -39,20 +41,25 @@ class Command(BaseCommand):
             ProjectPhoto.history.filter(project_id__in=data['projects']).delete()
             Rate.objects.filter(id__in=data['rates']).delete()
             Rate.history.filter(id__in=data['rates']).delete()
+            data['files'].extend(RateDocument.history.filter(id__in=data['documents']).values_list('file_key', flat=True))
+            RateDocument.objects.filter(id__in=data['documents']).delete()
+            RateDocument.history.filter(id__in=data['documents']).delete()
             get_user_model().objects.filter(pk=data['user_id'], username=data['username']).delete()
             for key in data['files']:
-                if key.startswith('photos/') and '..' not in key:
+                if key.startswith(('photos/', 'documents/')) and '..' not in key:
                     default_storage.delete(key)
             state.unlink()
             Path(data['upload']).unlink(missing_ok=True)
+            if data.get('pdf_upload'):
+                Path(data['pdf_upload']).unlink(missing_ok=True)
             self.stdout.write('Temporary fixtures removed.')
             return
         if state.exists():
             raise CommandError('Existing fixture state must be cleaned up first.')
-        data = {'projects': [], 'rates': [], 'files': [], 'username': 'browser-' + secrets.token_hex(6), 'password': secrets.token_urlsafe(24)}
+        data = {'projects': [], 'rates': [], 'documents': [], 'files': [], 'username': 'browser-' + secrets.token_hex(6), 'password': secrets.token_urlsafe(24)}
         with transaction.atomic():
             user = get_user_model().objects.create_user(data['username'], password=data['password'], is_staff=True)
-            user.user_permissions.set(Permission.objects.filter(content_type__app_label='content', content_type__model__in=['project', 'projectphoto', 'rate']))
+            user.user_permissions.set(Permission.objects.filter(content_type__app_label='content', content_type__model__in=['project', 'projectphoto', 'rate', 'ratedocument']))
             device = TOTPDevice.objects.create(user=user, name='Browser acceptance')
             data.update(user_id=user.pk, otp_key=device.key, otp_device=device.persistent_id)
             for index, sector in enumerate(['finishing', 'electrical', 'facades']):
@@ -78,9 +85,27 @@ class Command(BaseCommand):
             private = Rate.objects.create(title='PRIVATE ACCEPTANCE RATE', description='Never public.', category='facades',
                 worker_type='independent', basis='invoice_ex_vat', unit='m2', amount_from='99', status='published', visibility='private')
             data['rates'].append(str(private.id))
+            from pypdf import PdfWriter
+            writer = PdfWriter()
+            writer.add_blank_page(width=595, height=842)
+            pdf = BytesIO()
+            writer.write(pdf)
+            for sector in ['electrical', 'facades', 'finishing', 'subcontractors']:
+                document = RateDocument(title='Acceptance PDF ' + sector, category=sector, status='published', visibility='public')
+                store_document(document, prepare_document(SimpleUploadedFile('fixture.pdf', pdf.getvalue())))
+                document.save()
+                data['documents'].append(str(document.id))
+                data['files'].append(document.file_key)
+            document = RateDocument(title='PRIVATE ACCEPTANCE PDF', category='facades', status='published', visibility='private')
+            store_document(document, prepare_document(SimpleUploadedFile('fixture.pdf', pdf.getvalue())))
+            document.save()
+            data['documents'].append(str(document.id))
+            data['files'].append(document.file_key)
+            data['pdf_upload'] = str(state.parent / 'browser-upload.pdf')
+            Path(data['pdf_upload']).write_bytes(pdf.getvalue())
             data['upload'] = str(state.parent / 'browser-upload.jpg')
-            image = Image.new('RGB', (1000, 800), '#316279')
-            image.save(data['upload'], 'JPEG')
+            image = Image.new('RGB', (3840, 2160), '#316279')
+            image.save(data['upload'], 'MPO', save_all=True, append_images=[Image.new('RGB', (480, 270), 'blue')])
             state.write_text(json.dumps(data))
             state.chmod(0o600)
         self.stdout.write('Temporary browser fixtures created; private state saved.')

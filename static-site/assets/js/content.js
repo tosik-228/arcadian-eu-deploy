@@ -9,19 +9,26 @@
     nl: {all: 'Alle werken', finishing: 'Afwerking & renovatie', facades: 'Gevels', electrical: 'Elektriciteit', loading: 'Laden…', unavailable: 'Het portfolio is tijdelijk niet beschikbaar. Neem contact op voor projectreferenties.', empty: 'Projectfoto’s verschijnen hier na publicatie.', emptyRates: 'Neem contact op voor actuele mogelijkheden en samenwerkingsvoorwaarden.', more: 'Meer tonen', photos: 'Foto’s bekijken', close: 'Sluiten', previous: 'Vorige foto', next: 'Volgende foto', of: 'van', employee: 'Werknemer', independent: 'Zelfstandig specialist', crew: 'Zelfstandige ploeg', ownVehicle: 'Eigen voertuig', ownTools: 'Eigen gereedschap', payroll_gross: 'Brutoloon', invoice_ex_vat: 'Factuur, exclusief btw', hour_person: 'uur / persoon', day_person: 'dag / persoon', hour_crew: 'uur / ploeg', m2: 'm²', m: 'meter', unit: 'eenheid', fixed: 'afgesproken omvang', from: 'vanaf'},
   };
   const t = messages[locale];
+  Object.assign(t, {
+    en: {subcontractors: 'Subcontractor crews', viewPDF: 'View PDF', downloadPDF: 'Download PDF', pages: 'pages', effective: 'Effective from', documentsUnavailable: 'Rate documents are temporarily unavailable. Please contact Arcadian.'},
+    pl: {subcontractors: 'Brygady podwykonawcze', viewPDF: 'Przeglądaj PDF', downloadPDF: 'Pobierz PDF', pages: 'str.', effective: 'Obowiązuje od', documentsUnavailable: 'Dokumenty z cennikami są chwilowo niedostępne. Skontaktuj się z Arcadian.'},
+    nl: {subcontractors: 'Onderaannemersploegen', viewPDF: 'Bekijk PDF', downloadPDF: 'Download PDF', pages: 'pagina’s', effective: 'Geldig vanaf', documentsUnavailable: 'Tariefdocumenten zijn tijdelijk niet beschikbaar. Neem contact op met Arcadian.'},
+  }[locale]);
   const plural = new Intl.PluralRules(locale);
   const photoWords = {en: {one: 'photo', other: 'photos'}, pl: {one: 'zdjęcie', few: 'zdjęcia', many: 'zdjęć', other: 'zdjęcia'}, nl: {one: 'foto', other: 'foto’s'}}[locale];
   const status = root.querySelector('[data-content-status]');
   const list = root.querySelector('[data-content-list]');
   const more = root.querySelector('[data-content-more]');
   const type = root.dataset.contentPage;
+  const isDocument = type === 'documents';
+  const isRate = type === 'rates' || isDocument;
   let cms;
   try {
     cms = new URL(window.ARCADIAN_CMS_URL);
     if (cms.protocol !== 'https:' && !(cms.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(cms.hostname))) throw new Error('Invalid CMS endpoint.');
     if (cms.username || cms.password || cms.search || cms.hash) throw new Error('Invalid CMS endpoint.');
   } catch (_) {
-    status.textContent = type === 'rates' ? t.emptyRates : t.empty;
+    status.textContent = isRate ? t.emptyRates : t.empty;
     return;
   }
   const text = (row, field) => String((locale !== 'en' && row[`${field}_${locale}`]) || row[field] || '');
@@ -37,7 +44,7 @@
   let controller;
   let page = 1;
   let sector = root.dataset.contentSector || new URLSearchParams(location.search).get('sector') || '';
-  if (!['finishing', 'facades', 'electrical'].includes(sector)) sector = '';
+  if (!['finishing', 'facades', 'electrical', ...(isDocument ? ['subcontractors'] : [])].includes(sector)) sector = '';
 
   function projectCard(project) {
     const card = element('article', 'work-card');
@@ -111,6 +118,27 @@
     return card;
   }
 
+  function documentCard(row) {
+    if (!fileId(row.id)) throw new Error('Invalid document identifier.');
+    const card = element('article', 'document-card');
+    card.append(element('span', 'eyebrow', `PDF · ${t[row.category] || ''}`), element('h2', '', text(row, 'title')));
+    if (text(row, 'description')) card.append(element('p', 'work-description', text(row, 'description')));
+    const meta = `${Number(row.page_count)} ${t.pages} · ${(Number(row.file_bytes) / (1024 * 1024)).toLocaleString(locale, {maximumFractionDigits: 1})} MB`;
+    card.append(element('p', 'document-meta', meta));
+    if (/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date || '')) {
+      const date = new Date(`${row.effective_date}T12:00:00Z`);
+      if (!Number.isNaN(date.getTime())) card.append(element('p', 'document-meta', `${t.effective}: ${new Intl.DateTimeFormat(locale).format(date)}`));
+    }
+    const actions = element('div', 'document-actions');
+    const view = element('a', 'btn btn-copper', t.viewPDF);
+    view.href = new URL(`api/documents/${row.id}/`, cms.href.replace(/\/?$/, '/')).href;
+    view.target = '_blank'; view.rel = 'noopener noreferrer';
+    const download = element('a', 'btn btn-outline', t.downloadPDF);
+    download.href = `${view.href}?download=1`;
+    actions.append(view, download); card.append(actions);
+    return card;
+  }
+
   async function load(reset) {
     if (controller) controller.abort();
     controller = new AbortController();
@@ -118,7 +146,7 @@
     if (reset) {page = 1; list.replaceChildren();}
     more.hidden = true;
     message(t.loading);
-    const route = type === 'rates' ? 'rates' : 'projects';
+    const route = isDocument ? 'documents' : type === 'rates' ? 'rates' : 'projects';
     const endpoint = new URL(`api/${route}/`, cms.href.replace(/\/?$/, '/'));
     endpoint.searchParams.set('page', page);
     if (sector) endpoint.searchParams.set('category', sector);
@@ -127,12 +155,12 @@
       if (!response.ok) throw new Error('Content unavailable.');
       const result = await response.json();
       if (!Array.isArray(result.data)) throw new Error('Invalid content response.');
-      for (const row of result.data) list.append(type === 'rates' ? rateCard(row) : projectCard(row));
-      message(list.childElementCount ? '' : type === 'rates' ? t.emptyRates : t.empty);
+      for (const row of result.data) list.append(isDocument ? documentCard(row) : type === 'rates' ? rateCard(row) : projectCard(row));
+      message(list.childElementCount ? '' : isRate ? t.emptyRates : t.empty);
       more.hidden = result.has_more !== true;
     } catch (error) {
       if (error.name !== 'AbortError') {
-        message(t.unavailable);
+        message(isRate ? t.documentsUnavailable : t.unavailable);
         more.hidden = true;
       }
     }

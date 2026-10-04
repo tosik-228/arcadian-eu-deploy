@@ -25,7 +25,8 @@ class Command(BaseCommand):
                 if not readonly:
                     cursor.execute(sql.SQL('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {}').format(sql.Identifier(name)))
                     # Editing audit history is not a web application's capability.
-                    for table in ['content_historicalproject', 'content_historicalprojectphoto', 'content_historicalrate']:
+                    from content.models import Project, ProjectPhoto, Rate, RateDocument
+                    for table in [model.history.model._meta.db_table for model in (Project, ProjectPhoto, Rate, RateDocument)]:
                         cursor.execute(sql.SQL('REVOKE UPDATE, DELETE ON {} FROM {}').format(sql.Identifier(table), sql.Identifier(name)))
                 cursor.execute(sql.SQL('REVOKE CREATE ON SCHEMA public FROM {}').format(sql.Identifier(name)))
         self.stdout.write('Dedicated runtime and backup roles configured. Passwords were not changed.')

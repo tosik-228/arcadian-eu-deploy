@@ -1,7 +1,7 @@
 import {chromium} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 import {readFile, mkdir, writeFile, unlink} from 'node:fs/promises';
-import {createHmac} from 'node:crypto';
+import {createHmac, createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 
@@ -21,6 +21,7 @@ const manage = (action) => droplet ? dockerRun(['python', 'manage.py', 'browser_
 const cms = droplet ? 'https://localhost:8059' : 'http://127.0.0.1:8057';
 const site = droplet ? 'http://127.0.0.1:8175' : 'http://127.0.0.1:8173';
 const upload = `${root}cms/.state/droplet-browser-upload.jpg`;
+const pdfUpload = `${root}cms/.state/droplet-browser-upload.pdf`;
 let browser;
 let created = false;
 const evidence = [];
@@ -39,6 +40,8 @@ try {
   if (droplet) {
     await writeFile(upload, dockerRun(['cat', fixture.upload]), {mode: 0o600});
     fixture.upload = upload;
+    await writeFile(pdfUpload, dockerRun(['cat', fixture.pdf_upload]), {mode: 0o600});
+    fixture.pdf_upload = pdfUpload;
   }
   browser = await chromium.launch({headless: true});
   const context = await browser.newContext({ignoreHTTPSErrors: droplet}); // Local Caddy development CA only.
@@ -71,7 +74,7 @@ try {
   await admin.waitForURL(`${cms}/admin/`);
   assert.equal(await admin.locator('.arcadian-editor-card').count(), 2);
   assert.equal(await admin.locator('[data-editor=project] a[href$="/project/add/"]').count(), 1);
-  assert.equal(await admin.locator('[data-editor=rate] a[href$="/rate/add/"]').count(), 1);
+  assert.equal(await admin.locator('[data-editor=ratedocument] a[href$="/ratedocument/add/"]').count(), 1);
   await admin.screenshot({path: `${shots}/admin-home.png`, fullPage: true});
   mark('Mandatory 2FA login and two editor sections');
 
@@ -87,27 +90,33 @@ try {
   await admin.locator('#id_photographs').setInputFiles(fixture.upload);
   await admin.locator('input[name=_save]').click();
   await admin.waitForURL(`${cms}/admin/content/project/`);
-  mark('Browser photo upload and immediate publication');
+  mark('4K MPO/JPEG photo upload and immediate publication');
 
   const projectData = await (await fetch(`${cms}/api/projects/`)).json();
   const uploaded = projectData.data.find((row) => row.title === 'Browser upload acceptance');
   assert.ok(uploaded && uploaded.photos.length === 1);
+  assert.equal(uploaded.photos[0].width, 3840);
+  assert.equal(uploaded.photos[0].height, 2160);
   await admin.goto(`${cms}/admin/content/project/${uploaded.id}/change/`);
   await admin.locator('#id_description').fill('Updated description <script>alert("xss")</script>');
   await admin.locator('input[name=_save]').click();
   await admin.waitForURL(`${cms}/admin/content/project/`);
   mark('Description edit through admin');
 
-  await admin.goto(`${cms}/admin/content/rate/${fixture.rates[1]}/change/`);
+  await admin.goto(`${cms}/admin/content/ratedocument/add/`);
   await admin.screenshot({path: `${shots}/rate-desktop.png`, fullPage: true});
-  await admin.locator('#id_amount_from').fill('28.50');
+  await admin.locator('#id_title').fill('Browser PDF acceptance');
+  await admin.locator('#id_category').selectOption('subcontractors');
+  await admin.locator('#id_upload').setInputFiles(fixture.pdf_upload);
+  await admin.locator('#id_status').selectOption('published');
   await admin.locator('input[name=_save]').click();
-  await admin.waitForURL(`${cms}/admin/content/rate/`);
-  const rates = await (await fetch(`${cms}/api/rates/`)).json();
-  assert.equal(rates.data.find((row) => row.id === fixture.rates[1]).amount_from, '28.50');
-  assert.equal(rates.data.length, 3);
-  assert.ok(!JSON.stringify(rates).includes('PRIVATE ACCEPTANCE RATE'));
-  mark('Rates edit; private rate excluded');
+  await admin.waitForURL(`${cms}/admin/content/ratedocument/`);
+  const documents = await (await fetch(`${cms}/api/documents/`)).json();
+  assert.equal(documents.data.length, 5);
+  assert.ok(!JSON.stringify(documents).includes('PRIVATE ACCEPTANCE PDF'));
+  const uploadedDocument = documents.data.find(row => row.title === 'Browser PDF acceptance');
+  assert.ok(uploadedDocument);
+  mark('Browser PDF upload and publication; private document excluded');
 
   const page = await context.newPage();
   await page.setViewportSize({width: 1440, height: 1000});
@@ -122,9 +131,28 @@ try {
     await page.goto(`${site}/${locale}electrical/`);
     await page.waitForFunction(() => document.querySelectorAll('.work-card').length === 1);
     await page.goto(`${site}/${locale}rates/`);
-    await page.waitForFunction(() => document.querySelectorAll('.rate-card').length === 3);
+    await page.waitForFunction(() => document.querySelectorAll('.document-card').length === 5);
+    for (const route of ['rates/electrical/', 'rates/facades/', 'rates/finishing/', 'subcontractors/']) {
+      await page.goto(`${site}/${locale}${route}`);
+      await page.waitForFunction(() => document.querySelectorAll('.document-card').length > 0);
+      assert.equal(await page.locator('.document-card').count(), route === 'subcontractors/' ? 2 : 1);
+    }
   }
-  mark('EN / PL / NL gallery, electrical filter and rates');
+  mark('EN / PL / NL galleries and four separate PDF rate pages');
+  await page.goto(`${site}/subcontractors/`);
+  await page.locator('.document-card').filter({hasText: 'Browser PDF acceptance'}).waitFor();
+  const pdfCard = page.locator('.document-card').filter({hasText: 'Browser PDF acceptance'});
+  const documentURL = await pdfCard.getByRole('link', {name: 'View PDF', exact: true}).getAttribute('href');
+  const pdfResponse = await context.request.get(documentURL);
+  assert.equal(pdfResponse.headers()['content-type'], 'application/pdf');
+  assert.ok(pdfResponse.headers()['content-disposition'].startsWith('inline'));
+  const downloadEvent = page.waitForEvent('download');
+  await pdfCard.getByRole('link', {name: 'Download PDF', exact: true}).click();
+  const downloaded = await downloadEvent;
+  const downloadedBytes = await readFile(await downloaded.path());
+  const originalBytes = await readFile(fixture.pdf_upload);
+  assert.equal(createHash('sha256').update(downloadedBytes).digest('hex'), createHash('sha256').update(originalBytes).digest('hex'));
+  mark('PDF viewing endpoint and actual browser download preserve original bytes');
   await page.goto(`${site}/gallery/`);
   await page.waitForFunction(() => document.querySelectorAll('.work-card').length === 4);
   await page.locator('.work-card').filter({hasText: 'Acceptance finishing'}).locator('button.work-photo').click();
@@ -137,9 +165,9 @@ try {
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({path: `${shots}/gallery-desktop.png`, fullPage: true});
   await page.setViewportSize({width: 390, height: 844});
-  for (const path of ['gallery/', 'electrical/', 'rates/']) {
+  for (const path of ['gallery/', 'electrical/', 'rates/', 'rates/electrical/', 'rates/facades/', 'rates/finishing/', 'subcontractors/']) {
     await page.goto(`${site}/${path}`);
-    await page.waitForSelector('.work-card, .rate-card');
+    await page.waitForSelector('.work-card, .document-card');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   }
   await page.screenshot({path: `${shots}/rates-mobile.png`, fullPage: true});
@@ -150,11 +178,11 @@ try {
   assert.ok(await admin.evaluate(() => document.querySelector('#user-tools').getBoundingClientRect().bottom <= document.querySelector('#header').getBoundingClientRect().bottom));
   await admin.screenshot({path: `${shots}/admin-mobile.png`, fullPage: true});
   mark('390px public pages and admin');
-  for (const path of ['/admin/', '/admin/content/project/', '/admin/content/rate/', '/admin/content/rate/add/', `/admin/content/project/${uploaded.id}/history/`, '/admin/password_change/']) {
+  for (const path of ['/admin/', '/admin/content/project/', '/admin/content/ratedocument/', '/admin/content/ratedocument/add/', `/admin/content/project/${uploaded.id}/history/`, '/admin/password_change/']) {
     await admin.goto(`${cms}${path}`);
     assert.ok(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Mobile overflow: ${path}`);
   }
-  await admin.goto(`${cms}/admin/content/rate/add/`);
+  await admin.goto(`${cms}/admin/content/ratedocument/add/`);
   await admin.screenshot({path: `${shots}/rate-mobile.png`, fullPage: true});
   await admin.goto(`${cms}/admin/`);
   await admin.screenshot({path: `${shots}/dashboard-mobile.png`, fullPage: true});
@@ -171,6 +199,6 @@ try {
 } finally {
   if (browser) await browser.close();
   if (created) manage('cleanup');
-  if (droplet) await unlink(upload).catch(() => {});
+  if (droplet) {await unlink(upload).catch(() => {}); await unlink(pdfUpload).catch(() => {});}
   await writeFile(`${shots}../browser-acceptance.json`, JSON.stringify({checked_at: new Date().toISOString(), checks: evidence}, null, 2));
 }

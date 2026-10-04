@@ -42,7 +42,9 @@ for statement in queries:
 print('Restricted operations denied.')'''
 web_queries = ['CREATE TABLE public.arcadian_acceptance_probe (id integer)',
                'UPDATE content_historicalproject SET title=title WHERE FALSE',
-               'DELETE FROM content_historicalrate WHERE FALSE']
+               'DELETE FROM content_historicalrate WHERE FALSE',
+               'UPDATE content_historicalratedocument SET title=title WHERE FALSE',
+               'DELETE FROM content_historicalratedocument WHERE FALSE']
 subprocess.check_output(['docker', 'exec', 'arcadian-content-acceptance-cms-1', 'python', 'manage.py', 'shell',
                          '-c', denied.replace('QUERY_LIST', repr(web_queries))], env=environment, stderr=subprocess.PIPE)
 manage('backup', 'shell', '-c', denied.replace('QUERY_LIST', repr(['DELETE FROM auth_user WHERE FALSE'])))
@@ -59,7 +61,7 @@ if values.get('DJANGO_ENV') != 'local':
 name = 'restore_droplet_' + secrets.token_hex(6)
 local_env = {**os.environ, **values, 'CMS_DEPLOYMENT': 'local', 'DB_NAME': name}
 python = str(root/'.venv/bin/python')
-counter = 'from content.models import Project,Rate,ProjectPhoto; from django.contrib.auth import get_user_model; print(Project.objects.count(),Rate.objects.count(),ProjectPhoto.objects.count(),Project.history.count(),Rate.history.count(),get_user_model().objects.count())'
+counter = 'from content.models import Project,Rate,ProjectPhoto,RateDocument; from django.contrib.auth import get_user_model; print(Project.objects.count(),Rate.objects.count(),ProjectPhoto.objects.count(),Project.history.count(),Rate.history.count(),RateDocument.objects.count(),RateDocument.history.count(),get_user_model().objects.count())'
 
 def local_manage(*arguments):
     return subprocess.check_output([python, str(root/'manage.py'), *arguments], env=local_env, stderr=subprocess.PIPE)
@@ -91,7 +93,7 @@ with tempfile.TemporaryDirectory(prefix='arcadian-droplet-restore-') as media:
         for key in fixture['files']:
             source = run('migrate', 'cat', '/data/media/' + key)
             assert hashlib.sha256(source).digest() == hashlib.sha256((Path(media)/key).read_bytes()).digest()
-        mark('Restored all database rows and 12 WebP variants into a fresh local database')
+        mark('Restored all database rows, photo variants and PDF documents into a fresh local database')
         report = {'checked_at': datetime.now(timezone.utc).isoformat(),
                   'checks': checks, 'source_and_restored_counts': source_counts,
                   'verified_variants': len(fixture['files']), 'restore_result': json.loads(restored.decode().splitlines()[-1]),

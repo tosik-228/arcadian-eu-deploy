@@ -12,7 +12,7 @@ from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
-from content.models import ProjectPhoto
+from content.models import ProjectPhoto, RateDocument
 
 EXCLUDE = ['contenttypes', 'auth.permission', 'sessions', 'axes']
 
@@ -44,13 +44,15 @@ class Command(BaseCommand):
                 for model in [ProjectPhoto, ProjectPhoto.history.model]:
                     for values in model.objects.values_list('large', 'card', 'small').iterator():
                         keys.update(key for key in values if key)
+                for model in [RateDocument, RateDocument.history.model]:
+                    keys.update(key for key in model.objects.values_list('file_key', flat=True).iterator() if key)
             data = stream.getvalue().encode()
             manifest = {'format': 1, 'created_at': stamp, 'django': '5.2.17',
                         'export_sha256': hashlib.sha256(data).hexdigest(), 'files': {}}
             with zipfile.ZipFile(archive_path, 'w') as archive:
                 archive.writestr('data.json', data, compress_type=zipfile.ZIP_DEFLATED)
                 for key in sorted(keys):
-                    if not key.startswith('photos/') or '..' in key.split('/'):
+                    if not key.startswith(('photos/', 'documents/')) or '..' in key.split('/'):
                         raise CommandError('Unexpected media key; backup refused.')
                     digest = hashlib.sha256()
                     count = 0

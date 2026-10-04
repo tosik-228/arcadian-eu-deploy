@@ -11,8 +11,9 @@ from django.db import transaction
 from django_otp.oath import totp
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
-from .models import Project, ProjectPhoto, Rate, Status
+from .models import Project, ProjectPhoto, Rate, RateDocument, Status
 from .images import prepare_image, store_image
+from .documents import prepare_document, store_document
 from .forms import RateForm
 from .forms import PhotographBatch
 from .middleware import client_ip
@@ -54,7 +55,7 @@ class ContentAcceptance(TestCase):
         self.settings_override = override_settings(MEDIA_ROOT=self.media.name)
         self.settings_override.enable()
         self.editor = get_user_model().objects.create_user('test-editor', password='strong-test-password-2026', is_staff=True)
-        self.editor.user_permissions.set(Permission.objects.filter(content_type__app_label='content', content_type__model__in=['project', 'projectphoto', 'rate']))
+        self.editor.user_permissions.set(Permission.objects.filter(content_type__app_label='content', content_type__model__in=['project', 'projectphoto', 'rate', 'ratedocument']))
         self.device = TOTPDevice.objects.create(user=self.editor, name='authenticator')
 
     def tearDown(self):
@@ -143,7 +144,7 @@ class ContentAcceptance(TestCase):
         self.assertEqual(self.verified_client(True).post('/admin/content/rate/add/', {}).status_code, 403)
 
     def test_public_api_is_read_only_and_validates_pagination(self):
-        for path in ['/api/projects/', '/api/rates/']:
+        for path in ['/api/projects/', '/api/rates/', '/api/documents/']:
             for method in ['post', 'put', 'delete']:
                 self.assertEqual(getattr(self.client, method)(path).status_code, 405)
             self.assertEqual(self.client.get(path + '?page=-1').status_code, 400)
@@ -190,7 +191,7 @@ class ContentAcceptance(TestCase):
 
     def test_oversize_and_animated_images_are_rejected(self):
         upload = self.photo_upload()
-        upload.size = 20 * 1024 * 1024 + 1
+        upload.size = 50 * 1024 * 1024 + 1
         with self.assertRaises(ValidationError):
             prepare_image(upload)
         buffer = BytesIO()
@@ -198,6 +199,155 @@ class ContentAcceptance(TestCase):
             append_images=[Image.new('RGB', (10, 10), 'blue')], duration=100, loop=0)
         with self.assertRaises(ValidationError):
             prepare_image(SimpleUploadedFile('animation.webp', buffer.getvalue()))
+
+    def test_mac_still_photo_containers_use_the_primary_photo(self):
+        from pillow_heif import from_pillow
+        for kind in ['MPO', 'TIFF', 'HEIF']:
+            buffer = BytesIO()
+            primary = Image.new('RGB', (320, 240), 'red')
+            auxiliary = Image.new('RGB', (320, 240), 'blue')
+            if kind == 'HEIF':
+                container = from_pillow(primary)
+                container.add_from_pillow(auxiliary)
+                container.save(buffer, quality=95)
+            else:
+                primary.save(buffer, kind, save_all=True, append_images=[auxiliary])
+            with self.subTest(kind=kind):
+                prepared = prepare_image(SimpleUploadedFile('Photos-export.jpg', buffer.getvalue(), content_type='application/octet-stream'))
+                with Image.open(BytesIO(prepared['variants']['large'])) as result:
+                    self.assertEqual(result.size, (320, 240))
+                    red, green, blue = result.getpixel((160, 120))
+                    self.assertGreater(red, 200)
+                    self.assertLess(blue, 50)
+                    self.assertFalse(result.getexif())
+
+    def test_4k_photo_preserves_resolution_and_creates_small_previews(self):
+        buffer = BytesIO()
+        exif = Image.Exif()
+        exif[0x0112] = 6  # Portrait orientation from camera/Photos.
+        exif[0x010E] = 'PRIVATE LOCATION'
+        Image.new('RGB', (3840, 2160), '#abcdef').save(buffer, 'JPEG', exif=exif)
+        prepared = prepare_image(SimpleUploadedFile('4k-from-Photos.jpeg', buffer.getvalue()))
+        self.assertEqual((prepared['width'], prepared['height']), (2160, 3840))
+        for key, dimensions in [('large', (2160, 3840)), ('card', (960, 720)), ('small', (480, 360))]:
+            with Image.open(BytesIO(prepared['variants'][key])) as result:
+                self.assertEqual(result.size, dimensions)
+                self.assertFalse(result.getexif())
+            self.assertNotIn(b'PRIVATE LOCATION', prepared['variants'][key])
+
+    def test_empty_album_can_be_saved_as_draft(self):
+        values = dict(title='Empty draft album', category='facades', status='draft', sort=0,
+            **{'photos-TOTAL_FORMS': '0', 'photos-INITIAL_FORMS': '0', 'photos-MIN_NUM_FORMS': '0', 'photos-MAX_NUM_FORMS': '60'})
+        response = self.verified_client().post('/admin/content/project/add/', values)
+        self.assertEqual(response.status_code, 302)
+        project = Project.objects.get(title='Empty draft album')
+        self.assertEqual(project.photos.count(), 0)
+        self.assertEqual(self.client.get('/api/projects/').json()['data'], [])
+
+    def test_batch_rejection_identifies_the_file_without_partial_publication(self):
+        values = dict(title='Invalid batch', description='Works', category='facades', status='published', sort=0,
+            **{'photos-TOTAL_FORMS': '0', 'photos-INITIAL_FORMS': '0', 'photos-MIN_NUM_FORMS': '0', 'photos-MAX_NUM_FORMS': '60'},
+            photographs=[self.photo_upload(), SimpleUploadedFile('broken-photo.heic', b'broken')])
+        response = self.verified_client().post('/admin/content/project/add/', values)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'broken-photo.heic')
+        self.assertFalse(Project.objects.filter(title='Invalid batch').exists())
+
+    def pdf_upload(self, pages=1, encrypted=False, javascript=False):
+        from pypdf import PdfWriter
+        writer = PdfWriter()
+        for _ in range(pages):
+            writer.add_blank_page(width=595, height=842)
+        if encrypted:
+            writer.encrypt('private-password')
+        if javascript:
+            writer.add_js('app.alert("no scripts allowed");')
+        buffer = BytesIO()
+        writer.write(buffer)
+        return SimpleUploadedFile('rates.pdf', buffer.getvalue(), content_type='application/pdf')
+
+    def rate_document(self, category='electrical', status='published', visibility='public'):
+        obj = RateDocument(title='PDF rate sheet', category=category, status=status, visibility=visibility)
+        store_document(obj, prepare_document(self.pdf_upload()))
+        obj.save()
+        return obj
+
+    def test_pdf_validation_rejects_fake_broken_encrypted_and_active_documents(self):
+        inputs = [SimpleUploadedFile('fake.pdf', b'<svg/>', content_type='application/pdf'),
+            SimpleUploadedFile('broken.pdf', b'%PDF-1.7\nbroken'), self.pdf_upload(encrypted=True),
+            self.pdf_upload(javascript=True), self.pdf_upload(pages=201)]
+        oversized = self.pdf_upload()
+        oversized.size = 25 * 1024 * 1024 + 1
+        inputs.append(oversized)
+        for upload in inputs:
+            with self.subTest(upload=upload.name, size=upload.size):
+                with self.assertRaises(ValidationError):
+                    prepare_document(upload)
+
+    def test_pdf_categories_and_publication_control_api_and_downloads(self):
+        public = [self.rate_document(category=category) for category in ['electrical', 'facades', 'finishing', 'subcontractors']]
+        private = self.rate_document(status='published', visibility='private')
+        draft = self.rate_document(status='draft')
+        for obj in public:
+            data = self.client.get(f'/api/documents/?category={obj.category}').json()['data']
+            self.assertEqual([row['id'] for row in data], [str(obj.id)])
+            self.assertNotIn('file_key', data[0])
+            for download in ['', '?download=1']:
+                response = self.client.get(f'/api/documents/{obj.id}/{download}')
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response['Content-Type'], 'application/pdf')
+                self.assertTrue(response['Content-Disposition'].startswith('attachment' if download else 'inline'))
+                import hashlib
+                self.assertEqual(hashlib.sha256(b''.join(response.streaming_content)).hexdigest(), obj.file_sha256)
+        for obj in [private, draft]:
+            self.assertEqual(self.client.get(f'/api/documents/{obj.id}/').status_code, 404)
+            self.client.force_login(self.editor)
+            self.assertEqual(self.client.get(f'/api/documents/{obj.id}/').status_code, 404)
+            self.client.logout()
+            response = self.verified_client().get(f'/api/documents/{obj.id}/')
+            self.assertEqual(response.status_code, 200)
+            b''.join(response.streaming_content)
+        public[0].status = 'archived'
+        public[0].save()
+        self.assertEqual(self.client.get(f'/api/documents/{public[0].id}/').status_code, 404)
+        self.assertEqual(self.client.get('/api/documents/?category=electrical').json()['data'], [])
+
+    def test_pdf_admin_upload_replace_and_history_restore_preserve_original_bytes(self):
+        from django.core.files.storage import default_storage
+        import hashlib
+        client = self.verified_client()
+        original = self.pdf_upload()
+        original_bytes = original.read()
+        original.seek(0)
+        values = dict(title='Uploaded PDF', category='subcontractors', status='published', visibility='public', sort=0, upload=original)
+        response = client.post('/admin/content/ratedocument/add/', values)
+        self.assertEqual(response.status_code, 302)
+        obj = RateDocument.objects.get(title='Uploaded PDF')
+        history = obj.history.first()
+        old_key = obj.file_key
+        self.assertEqual(obj.file_sha256, hashlib.sha256(original_bytes).hexdigest())
+        values.update(saved_revision=obj.revision, upload=self.pdf_upload(pages=2))
+        response = client.post(f'/admin/content/ratedocument/{obj.id}/change/', values)
+        self.assertEqual(response.status_code, 302)
+        obj.refresh_from_db()
+        new_key = obj.file_key
+        self.assertNotEqual(old_key, new_key)
+        self.assertTrue(default_storage.exists(old_key))
+        self.assertEqual(obj.page_count, 2)
+        previous_url = f'/api/documents/{obj.id}/?revision={history.history_id}'
+        self.assertEqual(self.client.get(previous_url).status_code, 404)
+        previous = client.get(previous_url)
+        self.assertEqual(b''.join(previous.streaming_content), original_bytes)
+        self.assertEqual(client.get(previous_url.replace(str(history.history_id), 'invalid')).status_code, 404)
+        values.pop('upload')
+        values['saved_revision'] = obj.revision
+        response = client.post(f'/admin/content/ratedocument/{obj.id}/history/{history.history_id}/', values)
+        self.assertEqual(response.status_code, 302)
+        obj.refresh_from_db()
+        self.assertEqual(obj.file_key, old_key)
+        self.assertEqual(obj.page_count, 1)
+        self.assertEqual(obj.revision, 3)
+        self.assertTrue(default_storage.exists(new_key))
 
     def test_publish_requires_title_description_and_photo(self):
         with self.assertRaises(ValidationError):

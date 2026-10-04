@@ -35,7 +35,7 @@ class Command(BaseCommand):
             editor = get_user_model().objects.create_user(username, os.environ.get('EDITOR_EMAIL', ''), password, is_staff=True)
             group, _ = Group.objects.get_or_create(name='Редактор сайта')
             group.permissions.set(Permission.objects.filter(
-                content_type__app_label='content', content_type__model__in=['project', 'projectphoto', 'rate'],
+                content_type__app_label='content', content_type__model__in=['project', 'projectphoto', 'rate', 'ratedocument'],
                 codename__regex=r'^(add|change|delete|view)_',
             ))
             editor.groups.add(group)
