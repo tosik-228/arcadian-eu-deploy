@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load i18n log %}
+{% block bodyclass %}{{ block.super }} dashboard arcadian-dashboard{% endblock %}
+{% block coltype %}colM{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block content %}
+<div id="content-main">
+  <section class="arcadian-dashboard-intro">
+    <p class="arcadian-eyebrow">Управление сайтом</p>
+    <h1>Работы и расценки</h1>
+    <p>Фотографии объектов и условия сотрудничества — в одном месте.</p>
+    {% if site_url %}<a class="arcadian-site-link" href="{{ site_url }}">Открыть сайт <span aria-hidden="true">↗</span></a>{% endif %}
+  </section>
+  <div class="arcadian-editor-grid">
+  {% for app in app_list %}{% for model in app.models %}
+    <section class="arcadian-editor-card" data-editor="{{ model.object_name|lower }}" aria-labelledby="editor-{{ model.object_name|lower }}">
+      <div class="arcadian-card-top">
+        <span class="arcadian-card-icon" aria-hidden="true">
+        {% if model.object_name == 'Project' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 5 5 3-3 4 4"/></svg>
+        {% else %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h4"/></svg>
+        {% endif %}
+        </span>
+        <span class="arcadian-card-number" aria-hidden="true">{% if model.object_name == 'Project' %}01{% else %}02{% endif %}</span>
+      </div>
+      <h2 id="editor-{{ model.object_name|lower }}">{{ model.name }}</h2>
+      {% if model.object_name == 'Project' %}
+        <p>Фотографии, описания и порядок работ в галерее.</p>
+        <div class="arcadian-card-tags"><span>Отделка</span><span>Фасады</span><span>Электрика</span></div>
+      {% elif model.object_name == 'Rate' %}
+        <p>Суммы, условия и видимость расценок на сайте.</p>
+        <div class="arcadian-card-tags"><span>Штат</span><span>Субподрядчики</span><span>Бригады</span></div>
+      {% endif %}
+      <div class="arcadian-card-actions">
+        {% if model.add_url %}<a class="arcadian-button arcadian-button-primary" href="{{ model.add_url }}">{% if model.object_name == 'Project' %}Добавить работу{% elif model.object_name == 'Rate' %}Добавить расценку{% else %}{% translate 'Add' %}{% endif %}<span aria-hidden="true">+</span></a>{% endif %}
+        {% if model.admin_url %}<a class="arcadian-button arcadian-button-secondary" href="{{ model.admin_url }}">Открыть список <span aria-hidden="true">→</span></a>{% endif %}
+      </div>
+    </section>
+  {% endfor %}{% empty %}<p>{% translate 'You don’t have permission to view or edit anything.' %}</p>{% endfor %}
+  </div>
+  <aside class="arcadian-publication-note">
+    <span class="arcadian-note-mark" aria-hidden="true">i</span>
+    <div><h2>Публикация на сайте</h2><p>Сохраните запись как черновик, чтобы подготовить её. Для показа на сайте выберите «Опубликовано». Расценки также должны быть публичными.</p></div>
+  </aside>
+  {% get_admin_log 5 as admin_log for_user user %}
+  {% if admin_log %}
+  <section class="arcadian-recent" aria-labelledby="recent-heading">
+    <h2 id="recent-heading">Последние изменения</h2>
+    <ul>{% for entry in admin_log %}
+      <li><span>{% if entry.is_deletion or not entry.get_admin_url %}{{ entry.object_repr }}{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}<small>{{ entry.get_content_type.name|capfirst }}</small></span><time datetime="{{ entry.action_time|date:'c' }}">{{ entry.action_time|date:'d.m.Y H:i' }}</time></li>
+    {% endfor %}</ul>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

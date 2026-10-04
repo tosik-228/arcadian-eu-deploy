@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" viewBox="0 0 512 512">
+<title>Arcadian</title>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e8873c"/><stop offset="1" stop-color="#a4551d"/></linearGradient>
+ <polygon id="star" points="0,-28 6.2864,-8.6525 26.6296,-8.6525 10.1716,3.305 16.458,22.6525 0,10.695 -16.458,22.6525 -10.1716,3.305 -26.6296,-8.6525 -6.2864,-8.6525" fill="#ffdf00"/>
+</defs>
+<rect width="512" height="512" rx="118" fill="url(#bg)"/>
+<g><use href="#star" x="256" y="58.88"/>
+<use href="#star" x="354.56" y="85.2891"/>
+<use href="#star" x="426.7109" y="157.44"/>
+<use href="#star" x="453.12" y="256"/>
+<use href="#star" x="426.7109" y="354.56"/>
+<use href="#star" x="354.56" y="426.7109"/>
+<use href="#star" x="256" y="453.12"/>
+<use href="#star" x="157.44" y="426.7109"/>
+<use href="#star" x="85.2891" y="354.56"/>
+<use href="#star" x="58.88" y="256"/>
+<use href="#star" x="85.2891" y="157.44"/>
+<use href="#star" x="157.44" y="85.2891"/></g>
+<g transform="translate(256 256) scale(7.04) translate(-24.8 -24)">
+    <path d="M24 8 10 40h6.4l7.6-19.6L31.6 40H38L24 8Z" fill="#fff"/>
+    <path d="M19 29h14.5" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+    <circle cx="38.5" cy="29" r="3.4" fill="#ffd9ae"/>
+  </g>
+</svg>

@@ -47,17 +47,39 @@ try {
   const failures = [];
   admin.on('pageerror', (error) => failures.push(error.message));
   await admin.goto(`${cms}/admin/`);
+  await admin.evaluate(() => document.fonts.ready);
+  await admin.screenshot({path: `${shots}/login-desktop.png`, fullPage: true});
+  await admin.setViewportSize({width: 390, height: 844});
+  assert.ok(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  assert.ok(await admin.getByLabel('Код подтверждения').isVisible());
+  await admin.screenshot({path: `${shots}/login-mobile.png`, fullPage: true});
+  await admin.setViewportSize({width: 1280, height: 900});
+  mark('Branded login; 390px authentication fields remain accessible');
   await admin.locator('#id_username').fill(fixture.username);
+  await admin.locator('#id_password').fill(fixture.password);
+  const invalidCode = code(fixture.otp_key).split('');
+  invalidCode[0] = String((Number(invalidCode[0]) + 1) % 10);
+  await admin.locator('#id_otp_token').fill(invalidCode.join(''));
+  await admin.locator('input[type=submit]').click();
+  await admin.locator('.errornote').waitFor();
+  assert.ok(await admin.locator('#id_otp_token').isVisible());
+  mark('Incorrect second factor shows an accessible error');
+  await admin.waitForTimeout(2100); // Existing 2-second OTP throttle after one failed token.
   await admin.locator('#id_password').fill(fixture.password);
   await admin.locator('#id_otp_token').fill(code(fixture.otp_key));
   await admin.locator('input[type=submit]').click();
   await admin.waitForURL(`${cms}/admin/`);
-  assert.equal(await admin.locator('table caption').count(), 1);
-  assert.equal(await admin.locator('tbody tr.model-project, tbody tr.model-rate').count(), 2);
+  assert.equal(await admin.locator('.arcadian-editor-card').count(), 2);
+  assert.equal(await admin.locator('[data-editor=project] a[href$="/project/add/"]').count(), 1);
+  assert.equal(await admin.locator('[data-editor=rate] a[href$="/rate/add/"]').count(), 1);
   await admin.screenshot({path: `${shots}/admin-home.png`, fullPage: true});
   mark('Mandatory 2FA login and two editor sections');
 
   await admin.goto(`${cms}/admin/content/project/add/`);
+  await admin.locator('summary').filter({hasText: 'Переводы'}).click();
+  assert.ok(await admin.locator('#id_title_nl').isVisible());
+  await admin.locator('summary').filter({hasText: 'Переводы'}).click();
+  await admin.screenshot({path: `${shots}/project-desktop.png`, fullPage: true});
   await admin.locator('#id_title').fill('Browser upload acceptance');
   await admin.locator('#id_description').fill('Uploaded through the real browser form.');
   await admin.locator('#id_category').selectOption('finishing');
@@ -77,6 +99,7 @@ try {
   mark('Description edit through admin');
 
   await admin.goto(`${cms}/admin/content/rate/${fixture.rates[1]}/change/`);
+  await admin.screenshot({path: `${shots}/rate-desktop.png`, fullPage: true});
   await admin.locator('#id_amount_from').fill('28.50');
   await admin.locator('input[name=_save]').click();
   await admin.waitForURL(`${cms}/admin/content/rate/`);
@@ -122,9 +145,27 @@ try {
   await page.screenshot({path: `${shots}/rates-mobile.png`, fullPage: true});
   await admin.setViewportSize({width: 390, height: 844});
   await admin.goto(`${cms}/admin/content/project/${uploaded.id}/change/`);
+  assert.ok(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.ok(await admin.locator('#id_photographs').isVisible());
+  assert.ok(await admin.evaluate(() => document.querySelector('#user-tools').getBoundingClientRect().bottom <= document.querySelector('#header').getBoundingClientRect().bottom));
   await admin.screenshot({path: `${shots}/admin-mobile.png`, fullPage: true});
   mark('390px public pages and admin');
+  for (const path of ['/admin/', '/admin/content/project/', '/admin/content/rate/', '/admin/content/rate/add/', `/admin/content/project/${uploaded.id}/history/`, '/admin/password_change/']) {
+    await admin.goto(`${cms}${path}`);
+    assert.ok(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Mobile overflow: ${path}`);
+  }
+  await admin.goto(`${cms}/admin/content/rate/add/`);
+  await admin.screenshot({path: `${shots}/rate-mobile.png`, fullPage: true});
+  await admin.goto(`${cms}/admin/`);
+  await admin.screenshot({path: `${shots}/dashboard-mobile.png`, fullPage: true});
+  mark('390px dashboard, lists, rate form, history and password form');
+  await admin.setViewportSize({width: 1280, height: 900});
+  const themeToggle = admin.locator('.theme-toggle');
+  for (let attempt = 0; attempt < 3 && await admin.locator('html').getAttribute('data-theme') !== 'dark'; attempt++) await themeToggle.click();
+  assert.equal(await admin.locator('html').getAttribute('data-theme'), 'dark');
+  await admin.evaluate(() => Promise.allSettled(document.getAnimations().map(animation => animation.finished)));
+  await admin.screenshot({path: `${shots}/dashboard-dark.png`, fullPage: true});
+  mark('Theme switch remains functional');
   assert.deepEqual(failures, []);
   mark('No browser JavaScript errors');
 } finally {
