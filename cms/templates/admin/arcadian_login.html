@@ -1,15 +1,35 @@
 {% extends "admin/login.html" %}
+{% load static %}
+{% block branding %}{% endblock %}
 {% block content %}
-{% if form.errors %}<p class="errornote">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</p>{% endif %}
-<div id="content-main">
-<p>Работы и расценки</p>
+<div class="arcadian-login-shell">
+<section class="arcadian-login-intro" aria-label="Arcadian">
+  <a class="arcadian-brand" href="{{ site_url }}">
+    <img src="{% static 'content/arcadian-icon.svg' %}" width="44" height="44" alt="">
+    <span>ARCADIAN<small>Engineering Group</small></span>
+  </a>
+  <div class="arcadian-login-copy">
+    <p class="arcadian-eyebrow">Управление сайтом</p>
+    <h1>Работы. <br>Расценки. <br><span>Всё под рукой.</span></h1>
+    <p>Добавляйте фотографии объектов,<br class="desktop-only"> обновляйте описания и условия сотрудничества.</p>
+  </div>
+  <a class="arcadian-site-link" href="{{ site_url }}">Открыть сайт <span aria-hidden="true">↗</span></a>
+</section>
+<section id="content-main" class="arcadian-login-form" aria-labelledby="login-heading">
+<p class="arcadian-eyebrow">Администрация</p>
+<h2 id="login-heading">Вход в админку</h2>
+<p class="arcadian-login-caption">Ваши учётные данные и код подтверждения.</p>
+{% if form.non_field_errors %}<div class="errornote" role="alert">{{ form.non_field_errors }}</div>{% endif %}
 <form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
 <div class="form-row">{{ form.username.errors }}<label for="id_username">Логин</label>{{ form.username }}</div>
 <div class="form-row">{{ form.password.errors }}<label for="id_password">Пароль</label>{{ form.password }}</div>
 {% if form.get_user %}<div class="form-row">{{ form.otp_device.errors }}<label for="id_otp_device">Способ подтверждения</label>{{ form.otp_device }}</div>{% endif %}
-<div class="form-row">{{ form.otp_token.errors }}<label for="id_otp_token">Код подтверждения</label><input id="id_otp_token" name="otp_token" type="text" autocomplete="one-time-code" maxlength="32" required></div>
-<p class="help">Шесть цифр из приложения-аутентификатора или одноразовый резервный код.</p>
+<div class="form-row">{{ form.otp_token.errors }}<label for="id_otp_token">Код подтверждения</label><input id="id_otp_token" name="otp_token" type="text" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" maxlength="32" aria-describedby="otp-help" required></div>
+<p id="otp-help" class="help">Шесть цифр из приложения-аутентификатора или одноразовый резервный код.</p>
 <input type="hidden" name="next" value="{{ next }}">
 <div class="submit-row"><input type="submit" value="Войти"></div>
-</form></div>
+</form>
+<p class="arcadian-login-security"><span aria-hidden="true">●</span> Вход с двухфакторной защитой</p>
+</section>
+</div>
 {% endblock %}

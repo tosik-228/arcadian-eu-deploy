@@ -1,5 +1,11 @@
 {% extends "admin/base.html" %}
 {% load static %}
 {% block title %}{{ title }} | Arcadian{% endblock %}
-{% block branding %}<div id="site-name"><a href="{% url 'admin:index' %}">ARCADIAN</a></div>{% endblock %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'content/admin.css' %}">{% endblock %}
+{% block branding %}
+<div id="site-name"><a class="arcadian-brand" href="{% url 'admin:index' %}">
+  <img src="{% static 'content/arcadian-icon.svg' %}" width="38" height="38" alt="">
+  <span>ARCADIAN<small>Engineering Group</small></span>
+</a></div>
+{% endblock %}
+{% block extrahead %}{{ block.super }}<link rel="icon" href="{% static 'content/arcadian-icon.svg' %}" type="image/svg+xml">{% endblock %}
+{% block responsive %}{{ block.super }}<link rel="stylesheet" href="{% static 'content/admin.css' %}">{% endblock %}
