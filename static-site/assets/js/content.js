@@ -132,7 +132,11 @@
     const main = element('div', 'document-main');
     const kicker = element('div', 'document-kicker');
     kicker.append(element('span', 'eyebrow', row.category === 'subcontractors' ? 'For independent contractors' : 'For workers'), element('span', 'primary-language', 'English'));
-    const heading = element('h2', '', row.title || 'Rate sheet');
+    const heading = element('h2');
+    const titleButton = element('button', 'document-title-button', row.title || 'Rate sheet');
+    titleButton.type = 'button';
+    titleButton.setAttribute('aria-haspopup', 'dialog');
+    heading.append(titleButton);
     heading.id = 'document-title-' + row.id;
     card.setAttribute('aria-labelledby', heading.id);
     main.append(kicker, heading);
@@ -149,14 +153,18 @@
     fileInfo.append(element('strong', '', 'English rate sheet'), element('span', 'document-meta', meta));
     file.append(icon, fileInfo); main.append(file);
     const actions = element('div', 'document-actions');
-    const view = element('a', 'btn btn-copper', 'View English PDF');
-    view.href = new URL(`api/documents/${row.id}/`, cms.href.replace(/\/?$/, '/')).href;
-    view.target = '_blank'; view.rel = 'noopener noreferrer';
+    const documentURL = new URL(`api/documents/${row.id}/`, cms.href.replace(/\/?$/, '/')).href;
+    const view = element('button', 'btn btn-copper', 'View English PDF');
+    view.type = 'button';
+    view.setAttribute('aria-haspopup', 'dialog');
+    const openPreview = event => window.ARCADIAN_PDF_PREVIEW.open({url: documentURL, title: row.title || 'Rate sheet', meta}, event.currentTarget);
+    view.addEventListener('click', openPreview);
+    titleButton.addEventListener('click', openPreview);
     const download = element('a', 'btn btn-outline', 'Download');
-    download.href = `${view.href}?download=1`;
+    download.href = `${documentURL}?download=1`;
     actions.append(view, download); main.append(actions); card.append(main);
-    const languages = {ru: 'Русский', pl: 'Polski', nl: 'Nederlands'};
-    const translations = Array.isArray(row.translations) ? row.translations.filter(item => Object.hasOwn(languages, item.language)) : [];
+    const languages = {nl: 'Nederlands', pl: 'Polski', ru: 'Русский'};
+    const translations = Object.keys(languages).flatMap(language => Array.isArray(row.translations) ? row.translations.filter(item => item.language === language) : []);
     if (translations.length) {
       card.classList.add('has-translations');
       const sidebar = element('aside', 'document-languages');
@@ -165,7 +173,7 @@
       const files = element('div', 'translation-files');
       for (const item of translations) {
         const link = element('a', 'translation-file');
-        link.href = `${view.href}?language=${item.language}&download=1`;
+        link.href = `${documentURL}?language=${item.language}&download=1`;
         link.lang = item.language;
         const symbol = element('i', 'bi bi-file-earmark-text'); symbol.setAttribute('aria-hidden', 'true');
         const label = element('span', '', languages[item.language]);
