@@ -81,9 +81,12 @@
 .document-languages h3{font-family:var(--body);font-size:12px;font-weight:600;margin:0 0 6px}
 .document-languages>p{font-size:10px;color:var(--muted-2);margin:0 0 20px;line-height:1.5}
 .translation-files{display:flex;flex-direction:column;gap:9px}
-.translation-file{border:1px solid #dfe4eb;background:#fff;border-radius:5px;padding:10px;display:flex;gap:10px;align-items:center;font-size:12px;color:#374253;min-height:53px}
-.translation-file:hover{border-color:var(--copper)}
-.translation-file>i{font-size:18px;color:#768397}
+.translation-file{border:1px solid #dfe4eb;background:#fff;border-radius:5px;display:flex;align-items:stretch;font-size:12px;color:#374253;min-height:53px}
+.translation-file:hover,.translation-file:focus-within{border-color:var(--copper)}
+.translation-preview{flex:1;min-width:0;display:flex;gap:10px;align-items:center;padding:10px;border:0;border-radius:4px;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.translation-preview>i{font-size:18px;color:#768397}
+.translation-download{flex:0 0 28px;display:grid;place-items:center;border-radius:4px}
+.translation-preview:focus-visible,.translation-download:focus-visible{outline:2px solid var(--copper);outline-offset:-2px}
 .translation-file small{display:block;font-size:9px;color:#7b8494;margin-top:3px}
 .file-arrow{margin-left:auto;color:#8390a2}
 .document-title-button{font:inherit;letter-spacing:inherit;color:inherit;text-align:inherit;background:none;border:0;padding:0;cursor:pointer}
@@ -121,8 +124,8 @@
 .pdf-text-layer ::selection{background:rgba(0,0,255,.25);color:transparent}
 @media(max-width:620px){.pdf-dialog{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}.pdf-viewer-bar{padding:10px 12px;gap:6px}.pdf-viewer-heading strong{font-size:12px}.pdf-viewer-meta{font-size:10px}.pdf-viewer-actions{gap:2px}.pdf-tool{font-size:11px;padding:7px 8px}.pdf-close-label{display:none}.pdf-reader-controls{gap:8px;padding:2px 8px}.pdf-paper-stage{padding:0}.pdf-status{padding:15px 12px;margin:0}.pdf-paper{box-shadow:none}.pdf-viewer-notice{gap:0}}
 @media(max-width:850px){.documents-intro{display:block}.documents-intro p{margin-top:9px}.document-main{padding:25px}.document-card.has-translations{grid-template-columns:minmax(0,1fr) 225px}.document-languages{padding:25px 18px}}
-@media(max-width:620px){.document-card.has-translations{grid-template-columns:minmax(0,1fr)}.document-main{padding:22px}.document-card h2{font-size:25px}.document-languages{border-left:0;border-top:1px solid var(--line);padding:17px 20px}.document-languages>p{margin-bottom:13px}.translation-files{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.translation-file{padding:8px 7px;gap:5px;font-size:10px}.translation-file>i{display:none}.translation-file small{font-size:8px}.documents-intro p{font-size:11px;line-height:1.6}.document-actions .btn{font-size:11px;padding:11px 13px}}
-@media(max-width:360px){.translation-files{grid-template-columns:1fr}.translation-file>i{display:block}.document-actions .btn{width:100%;justify-content:space-between}}
+@media(max-width:620px){.document-card.has-translations{grid-template-columns:minmax(0,1fr)}.document-main{padding:22px}.document-card h2{font-size:25px}.document-languages{border-left:0;border-top:1px solid var(--line);padding:17px 20px}.document-languages>p{margin-bottom:13px}.translation-files{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.translation-file{font-size:10px}.translation-preview{padding:8px 7px;gap:5px}.translation-preview>i{display:none}.translation-download{flex-basis:22px}.translation-file small{font-size:8px}.documents-intro p{font-size:11px;line-height:1.6}.document-actions .btn{font-size:11px;padding:11px 13px}}
+@media(max-width:360px){.translation-files{grid-template-columns:1fr}.translation-preview>i{display:block}.document-actions .btn{width:100%;justify-content:space-between}}
 @media(max-width:960px){.document-sections{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.document-sections{grid-template-columns:1fr}.document-sections>a{padding:20px}}
 @media(max-width:960px){.content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.services-entry{grid-template-columns:1fr}.content-head{padding-top:52px}}

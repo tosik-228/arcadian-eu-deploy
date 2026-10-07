@@ -141,11 +141,15 @@
     card.setAttribute('aria-labelledby', heading.id);
     main.append(kicker, heading);
     if (row.description) main.append(element('p', 'work-description', row.description));
-    let meta = `${Number(row.page_count)} pages · ${new Intl.NumberFormat('en', {maximumFractionDigits: 0}).format(Math.ceil(Number(row.file_bytes) / 1024))} KB`;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date || '')) {
-      const date = new Date(`${row.effective_date}T12:00:00Z`);
-      if (!Number.isNaN(date.getTime())) meta += ` · ${new Intl.DateTimeFormat('en-GB', {day: 'numeric', month: 'long', year: 'numeric'}).format(date)}`;
-    }
+    const metadata = file => {
+      let value = `${Number(file.page_count)} pages · ${new Intl.NumberFormat('en', {maximumFractionDigits: 0}).format(Math.ceil(Number(file.file_bytes) / 1024))} KB`;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date || '')) {
+        const date = new Date(`${row.effective_date}T12:00:00Z`);
+        if (!Number.isNaN(date.getTime())) value += ` · ${new Intl.DateTimeFormat('en-GB', {day: 'numeric', month: 'long', year: 'numeric'}).format(date)}`;
+      }
+      return value;
+    };
+    const meta = metadata(row);
     const file = element('div', 'document-file');
     const icon = element('i', 'bi bi-file-earmark-text');
     icon.setAttribute('aria-hidden', 'true');
@@ -172,15 +176,27 @@
       sidebar.append(element('h3', '', 'Other languages'), element('p', '', 'Translated PDF attachments'));
       const files = element('div', 'translation-files');
       for (const item of translations) {
-        const link = element('a', 'translation-file');
-        link.href = `${documentURL}?language=${item.language}&download=1`;
-        link.lang = item.language;
+        const attachment = element('div', 'translation-file');
+        const translationURL = new URL(documentURL);
+        translationURL.searchParams.set('language', item.language);
+        const previewURL = translationURL.href;
+        const preview = element('button', 'translation-preview');
+        preview.type = 'button';
+        preview.setAttribute('aria-haspopup', 'dialog');
+        preview.setAttribute('aria-label', `View PDF: ${languages[item.language]}`);
+        preview.addEventListener('click', event => window.ARCADIAN_PDF_PREVIEW.open({url: previewURL, title: `${row.title || 'Rate sheet'} — ${languages[item.language]}`, meta: metadata(item)}, event.currentTarget));
         const symbol = element('i', 'bi bi-file-earmark-text'); symbol.setAttribute('aria-hidden', 'true');
         const label = element('span', '', languages[item.language]);
+        label.lang = item.language;
         const details = element('small', '', `PDF · ${Number(item.page_count)} pages`); details.lang = 'en';
         label.append(details);
-        const arrow = element('span', 'file-arrow', '↓'); arrow.setAttribute('aria-hidden', 'true');
-        link.append(symbol, label, arrow); files.append(link);
+        preview.append(symbol, label);
+        const download = element('a', 'translation-download file-arrow', '↓');
+        translationURL.searchParams.set('download', '1');
+        download.href = translationURL.href;
+        download.setAttribute('aria-label', `Download ${languages[item.language]} PDF`);
+        download.title = `Download ${languages[item.language]} PDF`;
+        attachment.append(preview, download); files.append(attachment);
       }
       sidebar.append(files); card.append(sidebar);
     }
