@@ -2,7 +2,7 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from PIL import Image
-from django.test import TestCase, Client, override_settings
+from django.test import TestCase, TransactionTestCase, Client, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -13,7 +13,7 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from .models import Project, ProjectPhoto, Rate, RateDocument, Status
 from .images import prepare_image, store_image
-from .documents import prepare_document, store_document
+from .documents import prepare_document, store_document, store_translation, document_file_keys
 from .forms import RateForm
 from .forms import PhotographBatch
 from .middleware import client_ip
@@ -321,7 +321,7 @@ class ContentAcceptance(TestCase):
         original.seek(0)
         values = dict(title='Uploaded PDF', category='subcontractors', status='published', visibility='public', sort=0, upload=original)
         response = client.post('/admin/content/ratedocument/add/', values)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 302, response.context['adminform'].form.errors.as_json() if response.status_code == 200 else '')
         obj = RateDocument.objects.get(title='Uploaded PDF')
         history = obj.history.first()
         old_key = obj.file_key
@@ -354,6 +354,94 @@ class ContentAcceptance(TestCase):
             Project(title='', description='', category='facades', status=Status.PUBLISHED).save()
         with self.assertRaises(ValidationError):
             Project(title='Facade', description='Works', category='facades', status=Status.PUBLISHED).save()
+
+    def test_pdf_translations_share_publication_access_and_do_not_expose_storage_keys(self):
+        import hashlib
+        obj = self.rate_document()
+        for index, language in enumerate(['ru', 'pl', 'nl'], start=2):
+            store_translation(obj, language, prepare_document(self.pdf_upload(pages=index)))
+        obj.save()
+        row = self.client.get('/api/documents/').json()['data'][0]
+        self.assertEqual(row['primary_language'], 'en')
+        self.assertEqual([item['language'] for item in row['translations']], ['ru', 'pl', 'nl'])
+        self.assertNotIn('file_key', str(row))
+        self.assertNotIn('file_sha256', str(row))
+        for language in ['ru', 'pl', 'nl']:
+            response = self.client.get(f'/api/documents/{obj.id}/?language={language}&download=1')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(f'-{language}.pdf', response['Content-Disposition'])
+            self.assertEqual(hashlib.sha256(b''.join(response.streaming_content)).hexdigest(), obj.translations[language]['file_sha256'])
+        for language in ['fr', '', '../en', 'RU']:
+            self.assertEqual(self.client.get(f'/api/documents/{obj.id}/', {'language': language}).status_code, 404)
+        for changes in [{'status': 'draft'}, {'status': 'published', 'visibility': 'private'}, {'status': 'archived', 'visibility': 'public'}]:
+            for name, value in changes.items():
+                setattr(obj, name, value)
+            obj.save()
+            self.assertEqual(self.client.get('/api/documents/').json()['data'], [])
+            for language in ['en', 'ru', 'pl', 'nl']:
+                self.assertEqual(self.client.get(f'/api/documents/{obj.id}/?language={language}').status_code, 404)
+            response = self.verified_client().get(f'/api/documents/{obj.id}/?language=ru')
+            self.assertEqual(response.status_code, 200)
+            b''.join(response.streaming_content)
+
+    def test_translation_metadata_rejects_other_documents_and_unsafe_paths(self):
+        obj = self.rate_document()
+        store_translation(obj, 'ru', prepare_document(self.pdf_upload()))
+        metadata = dict(obj.translations['ru'])
+        invalid = [None, {'fr': metadata}, {'ru': {'file_key': 'missing'}},
+            {'ru': dict(metadata, file_key='../private.pdf')},
+            {'ru': dict(metadata, file_key=metadata['file_key'].replace(str(obj.id), str(self.rate_document().id)))},
+            {'ru': dict(metadata, page_count=201)}, {'ru': dict(metadata, file_bytes=True)}]
+        for translations in invalid:
+            obj.translations = translations
+            with self.assertRaises(ValidationError):
+                obj.clean()
+
+    def test_admin_translation_replace_remove_and_history_restore(self):
+        from django.core.files.storage import default_storage
+        client = self.verified_client()
+        values = dict(title='English sheet', category='facades', status='published', visibility='public', sort=0,
+            upload=self.pdf_upload(), translation_ru=self.pdf_upload(pages=2), translation_pl=self.pdf_upload(pages=3))
+        response = client.post('/admin/content/ratedocument/add/', values)
+        self.assertEqual(response.status_code, 302)
+        obj = RateDocument.objects.get(title='English sheet')
+        history = obj.history.first()
+        english_key = obj.file_key
+        original = dict(obj.translations)
+        values = dict(title=obj.title, category=obj.category, status=obj.status, visibility=obj.visibility, sort=0,
+            saved_revision=obj.revision, translation_ru=self.pdf_upload(pages=4), remove_pl='on')
+        response = client.post(f'/admin/content/ratedocument/{obj.id}/change/', values)
+        self.assertEqual(response.status_code, 302)
+        obj.refresh_from_db()
+        replacement = obj.translations['ru']['file_key']
+        self.assertEqual(obj.file_key, english_key)
+        self.assertNotEqual(replacement, original['ru']['file_key'])
+        self.assertNotIn('pl', obj.translations)
+        self.assertTrue(all(default_storage.exists(item['file_key']) for item in original.values()))
+        self.assertEqual(self.client.get(f'/api/documents/{obj.id}/?language=pl').status_code, 404)
+        previous_url = f'/api/documents/{obj.id}/?language=pl&revision={history.history_id}'
+        self.assertEqual(self.client.get(previous_url).status_code, 404)
+        response = client.get(previous_url)
+        self.assertEqual(response.status_code, 200)
+        b''.join(response.streaming_content)
+        values = dict(title=obj.title, category=obj.category, status=obj.status, visibility=obj.visibility, sort=0,
+            saved_revision=obj.revision)
+        response = client.post(f'/admin/content/ratedocument/{obj.id}/history/{history.history_id}/', values)
+        self.assertEqual(response.status_code, 302)
+        obj.refresh_from_db()
+        self.assertEqual(obj.translations, original)
+        self.assertEqual(obj.file_key, english_key)
+        self.assertTrue(default_storage.exists(replacement))
+        normal = client.get(f'/admin/content/ratedocument/{obj.id}/change/')
+        self.assertFalse(normal.context['adminform'].form.fields['upload'].disabled)
+        self.assertFalse(normal.context['adminform'].form.fields['translation_ru'].disabled)
+
+    def test_bad_translation_upload_does_not_partially_publish_an_english_document(self):
+        values = dict(title='Invalid translation', category='facades', status='published', visibility='public', sort=0,
+            upload=self.pdf_upload(), translation_ru=SimpleUploadedFile('bad.pdf', b'not a PDF'))
+        response = self.verified_client().post('/admin/content/ratedocument/add/', values)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(RateDocument.objects.filter(title='Invalid translation').exists())
 
     def test_rate_range_basis_and_amount_are_validated(self):
         for changes in [dict(amount_from='40.00', amount_to='30.00'), dict(amount_from='0'),

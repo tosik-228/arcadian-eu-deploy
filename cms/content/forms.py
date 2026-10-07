@@ -115,8 +115,15 @@ class RateForm(RevisionForm):
 
 
 class RateDocumentForm(RevisionForm):
-    upload = forms.FileField(label='Загрузить PDF', required=False,
+    upload = forms.FileField(label='Основной PDF — английский', required=False,
         help_text='До 25 МБ и 200 страниц. Документ сохраняется целиком для просмотра и скачивания. При замене предыдущая версия остаётся в истории. Без пароля, вложений и интерактивных форм.')
+    translation_ru = forms.FileField(label='Русский PDF', required=False,
+        help_text='Отдельное вложение. Оставьте пустым, чтобы сохранить текущий перевод.')
+    translation_pl = forms.FileField(label='Польский PDF', required=False)
+    translation_nl = forms.FileField(label='Нидерландский PDF', required=False)
+    remove_ru = forms.BooleanField(label='Убрать русский PDF', required=False)
+    remove_pl = forms.BooleanField(label='Убрать польский PDF', required=False)
+    remove_nl = forms.BooleanField(label='Убрать нидерландский PDF', required=False)
 
     class Meta:
         model = RateDocument
@@ -124,8 +131,18 @@ class RateDocumentForm(RevisionForm):
 
     def clean(self):
         cleaned = super().clean()
+        from .documents import prepare_document, TRANSLATION_LANGUAGES
+        self.prepared_translations = {}
+        for language in TRANSLATION_LANGUAGES:
+            name = 'translation_' + language
+            if cleaned.get(name) and cleaned.get('remove_' + language):
+                self.add_error(name, 'Выберите загрузку или удаление перевода.')
+            elif cleaned.get(name):
+                try:
+                    self.prepared_translations[language] = prepare_document(cleaned[name])
+                except ValidationError as error:
+                    self.add_error(name, error)
         if cleaned.get('upload'):
-            from .documents import prepare_document
             try:
                 self.prepared = prepare_document(cleaned['upload'])
                 self.instance._allow_pending_document = True

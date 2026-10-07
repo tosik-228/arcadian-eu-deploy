@@ -13,6 +13,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from content.models import ProjectPhoto, RateDocument
+from content.documents import document_file_keys
 
 EXCLUDE = ['contenttypes', 'auth.permission', 'sessions', 'axes']
 
@@ -45,7 +46,8 @@ class Command(BaseCommand):
                     for values in model.objects.values_list('large', 'card', 'small').iterator():
                         keys.update(key for key in values if key)
                 for model in [RateDocument, RateDocument.history.model]:
-                    keys.update(key for key in model.objects.values_list('file_key', flat=True).iterator() if key)
+                    for document in model.objects.only('file_key', 'translations').iterator():
+                        keys.update(document_file_keys(document))
             data = stream.getvalue().encode()
             manifest = {'format': 1, 'created_at': stamp, 'django': '5.2.17',
                         'export_sha256': hashlib.sha256(data).hexdigest(), 'files': {}}

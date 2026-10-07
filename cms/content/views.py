@@ -10,6 +10,7 @@ from django.db import connection
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_safe
 from .models import Project, ProjectPhoto, Rate, RateDocument, Status, Category, DocumentCategory
+from .documents import TRANSLATION_LANGUAGES
 
 PUBLIC_FIELDS = ['id', 'title', 'description', 'title_pl', 'title_nl',
                  'description_pl', 'description_nl', 'category']
@@ -68,7 +69,15 @@ def documents(request):
         return JsonResponse({'error': 'Invalid page or category.'}, status=400)
     rows, has_more = result
     names = PUBLIC_FIELDS + ['effective_date', 'page_count', 'file_bytes']
-    return JsonResponse({'data': [fields(obj, names) for obj in rows], 'has_more': has_more})
+    data = []
+    for obj in rows:
+        row = fields(obj, names)
+        row['primary_language'] = 'en'
+        row['translations'] = [{'language': language, 'page_count': obj.translations[language]['page_count'],
+            'file_bytes': obj.translations[language]['file_bytes']} for language in TRANSLATION_LANGUAGES
+            if language in obj.translations]
+        data.append(row)
+    return JsonResponse({'data': data, 'has_more': has_more})
 
 
 @require_safe
@@ -90,13 +99,21 @@ def document(request, document_id):
             raise Http404
     if (obj.status != Status.PUBLISHED or obj.visibility != Rate.Visibility.PUBLIC) and not editor:
         raise Http404
+    language = request.GET.get('language', 'en')
+    if language == 'en':
+        key, digest = obj.file_key, obj.file_sha256
+    elif language in TRANSLATION_LANGUAGES and language in obj.translations:
+        metadata = obj.translations[language]
+        key, digest = metadata['file_key'], metadata['file_sha256']
+    else:
+        raise Http404
     try:
-        body = default_storage.open(obj.file_key, 'rb')
+        body = default_storage.open(key, 'rb')
     except FileNotFoundError:
         raise Http404
     response = FileResponse(body, content_type='application/pdf',
-        as_attachment=request.GET.get('download') == '1', filename=f'arcadian-{obj.category}-{obj.id}.pdf')
-    response['ETag'] = '"' + obj.file_sha256 + '"'
+        as_attachment=request.GET.get('download') == '1', filename=f'arcadian-{obj.category}-{obj.id}-{language}.pdf')
+    response['ETag'] = '"' + digest + '"'
     return response
 
 

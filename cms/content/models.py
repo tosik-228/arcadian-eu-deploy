@@ -191,6 +191,7 @@ class RateDocument(ContentRecord):
     file_sha256 = models.CharField(max_length=64, blank=True, editable=False)
     file_bytes = models.PositiveIntegerField(default=0, editable=False)
     page_count = models.PositiveSmallIntegerField(default=0, editable=False)
+    translations = models.JSONField('Дополнительные PDF', default=dict, db_default={}, blank=True, editable=False)
     history = HistoricalRecords()
 
     class Meta(ContentRecord.Meta):
@@ -204,6 +205,8 @@ class RateDocument(ContentRecord):
     def clean(self):
         # The description is optional: the PDF contains the actual terms.
         models.Model.clean(self)
+        from .documents import validate_translations
+        validate_translations(self)
         if self.status == Status.PUBLISHED:
             if not self.title.strip():
                 raise ValidationError({'title': 'Для публикации укажите название.'})

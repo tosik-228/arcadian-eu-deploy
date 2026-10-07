@@ -38,6 +38,13 @@
     if (value !== undefined) item.textContent = value;
     return item;
   };
+  if (isDocument) {
+    list.classList.add('document-grid');
+    const intro = element('div', 'documents-intro');
+    intro.lang = 'en';
+    intro.append(element('h2', '', 'Current rate sheets'), element('p', '', 'English is the main version. Translations are available as separate attachments.'));
+    status.before(intro);
+  }
   const fileId = (id) => typeof id === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id);
   const asset = (id, size) => new URL(`api/images/${id}/?size=${size}`, cms.href.replace(/\/?$/, '/')).href;
   const message = (value) => {status.textContent = value; status.hidden = !value;};
@@ -121,21 +128,54 @@
   function documentCard(row) {
     if (!fileId(row.id)) throw new Error('Invalid document identifier.');
     const card = element('article', 'document-card');
-    card.append(element('span', 'eyebrow', `PDF · ${t[row.category] || ''}`), element('h2', '', text(row, 'title')));
-    if (text(row, 'description')) card.append(element('p', 'work-description', text(row, 'description')));
-    const meta = `${Number(row.page_count)} ${t.pages} · ${(Number(row.file_bytes) / (1024 * 1024)).toLocaleString(locale, {maximumFractionDigits: 1})} MB`;
-    card.append(element('p', 'document-meta', meta));
+    card.lang = 'en';
+    const main = element('div', 'document-main');
+    const kicker = element('div', 'document-kicker');
+    kicker.append(element('span', 'eyebrow', row.category === 'subcontractors' ? 'For independent contractors' : 'For workers'), element('span', 'primary-language', 'English'));
+    const heading = element('h2', '', row.title || 'Rate sheet');
+    heading.id = 'document-title-' + row.id;
+    card.setAttribute('aria-labelledby', heading.id);
+    main.append(kicker, heading);
+    if (row.description) main.append(element('p', 'work-description', row.description));
+    let meta = `${Number(row.page_count)} pages · ${new Intl.NumberFormat('en', {maximumFractionDigits: 0}).format(Math.ceil(Number(row.file_bytes) / 1024))} KB`;
     if (/^\d{4}-\d{2}-\d{2}$/.test(row.effective_date || '')) {
       const date = new Date(`${row.effective_date}T12:00:00Z`);
-      if (!Number.isNaN(date.getTime())) card.append(element('p', 'document-meta', `${t.effective}: ${new Intl.DateTimeFormat(locale).format(date)}`));
+      if (!Number.isNaN(date.getTime())) meta += ` · ${new Intl.DateTimeFormat('en-GB', {day: 'numeric', month: 'long', year: 'numeric'}).format(date)}`;
     }
+    const file = element('div', 'document-file');
+    const icon = element('i', 'bi bi-file-earmark-text');
+    icon.setAttribute('aria-hidden', 'true');
+    const fileInfo = element('div');
+    fileInfo.append(element('strong', '', 'English rate sheet'), element('span', 'document-meta', meta));
+    file.append(icon, fileInfo); main.append(file);
     const actions = element('div', 'document-actions');
-    const view = element('a', 'btn btn-copper', t.viewPDF);
+    const view = element('a', 'btn btn-copper', 'View English PDF');
     view.href = new URL(`api/documents/${row.id}/`, cms.href.replace(/\/?$/, '/')).href;
     view.target = '_blank'; view.rel = 'noopener noreferrer';
-    const download = element('a', 'btn btn-outline', t.downloadPDF);
+    const download = element('a', 'btn btn-outline', 'Download');
     download.href = `${view.href}?download=1`;
-    actions.append(view, download); card.append(actions);
+    actions.append(view, download); main.append(actions); card.append(main);
+    const languages = {ru: 'Русский', pl: 'Polski', nl: 'Nederlands'};
+    const translations = Array.isArray(row.translations) ? row.translations.filter(item => Object.hasOwn(languages, item.language)) : [];
+    if (translations.length) {
+      card.classList.add('has-translations');
+      const sidebar = element('aside', 'document-languages');
+      sidebar.setAttribute('aria-label', `${row.title || 'Rate sheet'}: additional languages`);
+      sidebar.append(element('h3', '', 'Other languages'), element('p', '', 'Translated PDF attachments'));
+      const files = element('div', 'translation-files');
+      for (const item of translations) {
+        const link = element('a', 'translation-file');
+        link.href = `${view.href}?language=${item.language}&download=1`;
+        link.lang = item.language;
+        const symbol = element('i', 'bi bi-file-earmark-text'); symbol.setAttribute('aria-hidden', 'true');
+        const label = element('span', '', languages[item.language]);
+        const details = element('small', '', `PDF · ${Number(item.page_count)} pages`); details.lang = 'en';
+        label.append(details);
+        const arrow = element('span', 'file-arrow', '↓'); arrow.setAttribute('aria-hidden', 'true');
+        link.append(symbol, label, arrow); files.append(link);
+      }
+      sidebar.append(files); card.append(sidebar);
+    }
     return card;
   }
 

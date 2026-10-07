@@ -1,11 +1,12 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from copy import deepcopy
+from django.utils.html import format_html, format_html_join
 from django.urls import reverse
 from django.db import transaction
 from simple_history.admin import SimpleHistoryAdmin
 from .forms import ProjectForm, PhotoForm, PhotoFormSet, RateForm, RateDocumentForm
 from .images import store_image
-from .documents import store_document
+from .documents import store_document, store_translation, TRANSLATION_LANGUAGES
 from .models import Project, ProjectPhoto, Rate, RateDocument
 
 TRANSLATIONS = ('Переводы (необязательно)', {
@@ -106,9 +107,12 @@ class RateDocumentAdmin(ContentAdmin):
     list_filter = ('category', 'status', 'visibility')
     search_fields = ('title', 'description')
     actions = None
-    readonly_fields = ('current_document', 'updated_at')
+    readonly_fields = ('current_document', 'current_translations', 'updated_at')
     fieldsets = [
         (None, {'fields': ('saved_revision', 'title', 'category', 'upload', 'current_document', 'description', 'status')}),
+        ('Дополнительные языки (PDF)', {'fields': ('current_translations', ('translation_ru', 'remove_ru'),
+            ('translation_pl', 'remove_pl'), ('translation_nl', 'remove_nl')),
+            'description': 'Английский — основная версия. Переводы показываются как отдельные вложения.'}),
         ('Детали', {'fields': ('visibility', 'effective_date', 'sort', 'updated_at'), 'classes': ('collapse',)}),
         TRANSLATIONS,
     ]
@@ -127,13 +131,36 @@ class RateDocumentAdmin(ContentAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
+        # Declared upload fields are shared by ModelForm subclasses. A history
+        # request must not disable uploads in subsequent normal editor forms.
+        form.base_fields = deepcopy(form.base_fields)
         if '/history/' in request.path:
             form.base_fields['upload'].disabled = True
             form.base_fields['upload'].help_text = 'Восстановление истории возвращает предыдущую версию PDF и её описание.'
+            for language in TRANSLATION_LANGUAGES:
+                form.base_fields['translation_' + language].disabled = True
+                form.base_fields['remove_' + language].disabled = True
         return form
+
+    @admin.display(description='Текущие переводы')
+    def current_translations(self, obj):
+        if not obj or not obj.translations:
+            return 'Переводы не загружены.'
+        base = reverse('content_document', args=[obj.id])
+        history = getattr(obj, '_history', None)
+        suffix = f'&revision={history.history_id}' if history else ''
+        return format_html_join(' · ', '<a href="{}" target="_blank" rel="noopener noreferrer">{} · {} стр.</a>',
+            ((f'{base}?language={language}{suffix}', language.upper(), obj.translations[language]['page_count'])
+             for language in TRANSLATION_LANGUAGES if language in obj.translations))
 
     def save_model(self, request, obj, form, change):
         if hasattr(form, 'prepared'):
             store_document(obj, form.prepared)
+        obj.translations = dict(obj.translations)
+        for language in TRANSLATION_LANGUAGES:
+            if form.cleaned_data.get('remove_' + language):
+                obj.translations.pop(language, None)
+        for language, prepared in form.prepared_translations.items():
+            store_translation(obj, language, prepared)
         obj._allow_pending_document = False
         super().save_model(request, obj, form, change)

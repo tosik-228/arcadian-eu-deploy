@@ -41,7 +41,9 @@ class Command(BaseCommand):
             ProjectPhoto.history.filter(project_id__in=data['projects']).delete()
             Rate.objects.filter(id__in=data['rates']).delete()
             Rate.history.filter(id__in=data['rates']).delete()
-            data['files'].extend(RateDocument.history.filter(id__in=data['documents']).values_list('file_key', flat=True))
+            from content.documents import document_file_keys
+            for document in RateDocument.history.filter(id__in=data['documents']):
+                data['files'].extend(document_file_keys(document))
             RateDocument.objects.filter(id__in=data['documents']).delete()
             RateDocument.history.filter(id__in=data['documents']).delete()
             get_user_model().objects.filter(pk=data['user_id'], username=data['username']).delete()
